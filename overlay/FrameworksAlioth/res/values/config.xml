@@ -34,6 +34,10 @@
     -->
     <bool name="config_powerDecoupleInteractiveModeFromDisplay">true</bool>
 
+    <!-- Path to fast charging status file to detect whether an oem fast charger is active -->
+    <string name="config_oemFastChargerStatusPath" translatable="false">/sys/class/power_supply/bms/fastcharge_mode</string>
+    
+
         <!-- Flag indicating whether the surfaceflinger has limited
      alpha compositing functionality in hardware.  If set, the window
      manager will disable alpha trasformation in animations where not
