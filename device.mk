@@ -247,6 +247,7 @@ $(call soong_config_set,stagefright,target_disable_thumbnail_block_model,true)
 PRODUCT_PACKAGES += \
     android.hardware.nfc-service.nxp \
     com.android.nfc_extras \
+    nqnfcinfo \
     Tag
 
 PRODUCT_COPY_FILES += \
