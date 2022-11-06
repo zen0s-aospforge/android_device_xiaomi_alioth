@@ -14,6 +14,8 @@ typedef struct variant_info {
     std::string hwc_value;
     std::string sku_value;
 
+    std::string mod_device;
+    std::string name;
     std::string brand;
     std::string device;
     std::string marketname;
