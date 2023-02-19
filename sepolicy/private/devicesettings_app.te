@@ -1,6 +1,3 @@
-type devicesettings_app, domain;
-typeattribute devicesettings_app mlstrustedsubject;
-
 app_domain(devicesettings_app)
 
 # Access standard system services
@@ -19,11 +16,15 @@ allow devicesettings_app system_app_data_file:{ file lnk_file } create_file_perm
 # Allow binder communication with gpuservice
 binder_call(devicesettings_app, gpuservice)
 
-# Allow XiaomiParts to write to sysfs_leds
-allow devicesettings_app sysfs_leds:file w_file_perms;
+# Allow devicesettings_app to read and write to cgroup/sysfs_leds/sysfs_thermal
+allow devicesettings_app sysfs_leds:dir search;
 
-# Allow XiaomiParts to write to sysfs_thermal
-allow devicesettings_app sysfs_thermal:file w_file_perms;
+#Allow devicesettings_app vendor_sysfs_graphics:dir search;
+allow devicesettings_app {
+  cgroup
+  sysfs_leds
+  sysfs_thermal
+}:{ file lnk_file } rw_file_perms;
 
 # Allow XiaomiParts to communicate with the Xiaomi motor HAL
 hal_client_domain(devicesettings_app, hal_motor)
