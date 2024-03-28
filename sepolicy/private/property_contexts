@@ -12,3 +12,6 @@ ro.product.marketname                                                           
 
 # ReVanced
 persist.sys.revan.mod u:object_r:revanced_prop:s0
+
+# SettingsLib
+settingsdebug.instant.packages u:object_r:settingslib_prop:s0
