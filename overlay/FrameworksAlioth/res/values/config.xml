@@ -34,6 +34,12 @@
     -->
     <bool name="config_powerDecoupleInteractiveModeFromDisplay">true</bool>
 
+        <!-- Flag indicating whether the surfaceflinger has limited
+     alpha compositing functionality in hardware.  If set, the window
+     manager will disable alpha trasformation in animations where not
+     strictly needed. -->    
+    <bool name="config_sf_limitedAlpha">true</bool>
+
     <!-- IWLAN data service package name to bind to by default. If none is specified in an overlay, an
          empty string is passed in -->
     <string name="config_wlan_data_service_package" translatable="false">vendor.qti.iwlan</string>
