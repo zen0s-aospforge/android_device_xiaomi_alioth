@@ -220,6 +220,13 @@
     <!-- Disable bluetooth by default -->
     <bool name="def_bluetooth_on">false</bool>
 
+    <!-- Flag indicating whether the surfaceflinger has limited
+     alpha compositing functionality in hardware.  If set, the window
+     manager will disable alpha trasformation in animations where not
+     strictly needed. -->    
+    <bool name="config_sf_limitedAlpha">true</bool>
+
+
     <!-- SIM / Hotswap -->
     <!-- Is the device capable of hot swapping an ICC Card -->
     <bool name="config_hotswapCapable">true</bool>
