@@ -192,6 +192,9 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     vendor.qti.hardware.memtrack-service
    
+# Dolby
+$(call inherit-product, hardware/dolby/dolby.mk)
+
 PRODUCT_VENDOR_PROPERTIES += \
     persist.sys.sf.native_mode=269 \
     ro.vendor.display.paneltype=2 \
