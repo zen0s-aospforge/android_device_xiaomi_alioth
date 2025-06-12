@@ -264,20 +264,19 @@ PRODUCT_COPY_FILES += \
 TARGET_SUPPORTS_OMX_SERVICE := false
 
 # Overlays
-DEVICE_PACKAGE_OVERLAYS += \
-    $(LOCAL_PATH)/overlay \
-    $(LOCAL_PATH)/overlay-lineage
-
 PRODUCT_PACKAGES += \
-    SettingsProviderM2012K11AC \
-    SettingsProviderM2012K11AG \
-    SettingsProviderM2012K11AI \
-    WifiOverlayM2012K11AC \
-    WifiOverlayM2012K11AG \
-    WifiOverlayM2012K11AI
+    CarrierConfigResCommon \
+    DialerResCommon \
+    FrameworksResCommon \
+    LineageSDKResCommon \
+    LineageSettingsResCommon \
+    SettingsResCommon \
+    SettingsProviderResCommon \
+    SystemUIResCommon \
+    TelephonyResCommon \
+    WifiResCommon
 
 PRODUCT_ENFORCE_RRO_TARGETS := *
-PRODUCT_ENFORCE_RRO_EXCLUDED_OVERLAYS += $(LOCAL_PATH)/overlay/packages/apps/CarrierConfig
 
 # Partitions
 PRODUCT_USE_DYNAMIC_PARTITIONS := true
@@ -398,7 +397,6 @@ PRODUCT_PACKAGES += \
     libwifi-hal-ctrl \
     libwifi-hal-qcom \
     NcmTetheringOverlay \
-    WifiResCommon \
     wpa_supplicant \
     wpa_supplicant.conf
 
