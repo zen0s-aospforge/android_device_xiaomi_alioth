@@ -264,6 +264,9 @@ vendor.gralloc.disable_ubwc=0
 persist.vendor.pps.disallowed=1
 persist.vendor.hvdcp_opti.disallowed=1
 
+# Kernel idle
+ro.surface_flinger.support_kernel_idle_timer=true
+
 # Keystore
 ro.hardware.keystore_desede=true
 
