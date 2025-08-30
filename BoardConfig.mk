@@ -83,8 +83,6 @@ BOARD_MKBOOTIMG_ARGS += --header_version $(BOARD_BOOT_HEADER_VERSION)
 TARGET_KERNEL_SOURCE := kernel/xiaomi/alioth
 TARGET_KERNEL_CONFIG += vendor/xiaomi/alioth.config
 
-# Media
-TARGET_USES_ION := true
 
 # OTA assert
 TARGET_OTA_ASSERT_DEVICE := alioth,aliothin
