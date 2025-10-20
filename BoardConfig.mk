@@ -89,6 +89,12 @@ TARGET_NO_BOOTLOADER := true
 
 # Camera Malloc
 MALLOC_SVELTE_FOR_LIBC32 := true
+
+# Camera - Miui
+$(call soong_config_set,camera,package_name,com.android.camera)
+
+# Camera - HIDL overrideFormat
+$(call soong_config_set,camera,override_format_from_reserved,true)
 TARGET_CAMERA_SERVICE_EXT_LIB := //$(DEVICE_PATH)/configs:libcameraservice_extension.sm8250
 
 # Display
