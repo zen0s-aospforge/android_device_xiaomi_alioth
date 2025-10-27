@@ -4,13 +4,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package co.aospa.xiaomiparts
+package org.lineageos.xiaomiparts
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import co.aospa.xiaomiparts.thermal.ThermalUtils
+import org.lineageos.xiaomiparts.thermal.ThermalUtils
 
 /** Everything begins at boot. */
 class BootCompletedReceiver : BroadcastReceiver() {
