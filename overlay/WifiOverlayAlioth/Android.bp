@@ -1,0 +1,31 @@
+//
+// SPDX-FileCopyrightText: The LineageOS Project
+// SPDX-License-Identifier: Apache-2.0
+//
+
+runtime_resource_overlay {
+    name: "WifiOverlayAlioth",
+    vendor: true,
+}
+
+runtime_resource_overlay {
+    name: "WifiOverlayAliothPOCO",
+    manifest: "AndroidManifest-POCO.xml",
+    resource_dirs: ["res-POCO"],
+    vendor: true,
+}
+
+runtime_resource_overlay {
+    name: "WifiOverlayAliothRedmi",
+    manifest: "AndroidManifest-Redmi.xml",
+    resource_dirs: ["res-Redmi"],
+    vendor: true,
+}
+
+runtime_resource_overlay {
+    name: "WifiOverlayAliothMi",
+    manifest: "AndroidManifest-Mi.xml",
+    resource_dirs: ["res-Mi"],
+    vendor: true,
+}
+
