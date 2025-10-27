@@ -199,6 +199,19 @@ PRODUCT_PACKAGES += \
 
 PRODUCT_PACKAGES += \
     vendor.qti.hardware.memtrack-service
+   
+PRODUCT_VENDOR_PROPERTIES += \
+    persist.sys.sf.native_mode=269 \
+    ro.vendor.display.paneltype=2 \
+    ro.vendor.display.sensortype=2 \
+    vendor.display.qdcm.mode_combine=1 \
+    vendor.display.defer_fps_frame_count=2
+
+PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
+    ro.surface_flinger.set_idle_timer_ms=2000 \
+    ro.surface_flinger.set_touch_timer_ms=2000 \
+    ro.surface_flinger.set_display_power_timer_ms=1000 \
+    ro.surface_flinger.use_content_detection_for_refresh_rate=true
 
 # DRM
 PRODUCT_PACKAGES += \
