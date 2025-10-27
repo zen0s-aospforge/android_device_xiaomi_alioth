@@ -81,7 +81,7 @@ DEX_PREOPT_DEFAULT := generate-vdex-and-image
 WITH_DEXPREOPT_DEBUG_INFO := false
 
 # Bluetooth
-BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := $(COMMON_PATH)/bluetooth/include
+BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := $(DEVICE_PATH)/config/bluetooth/include
 
 # Bootloader
 TARGET_BOOTLOADER_BOARD_NAME := kona
@@ -89,7 +89,7 @@ TARGET_NO_BOOTLOADER := true
 
 # Camera Malloc
 MALLOC_SVELTE_FOR_LIBC32 := true
-TARGET_CAMERA_SERVICE_EXT_LIB := //$(COMMON_PATH):libcameraservice_extension.sm8250
+TARGET_CAMERA_SERVICE_EXT_LIB := //$(DEVICE_PATH)/configs:libcameraservice_extension.sm8250
 
 # Display
 TARGET_ADDITIONAL_GRALLOC_10_USAGE_BITS := 0x546C00000000
