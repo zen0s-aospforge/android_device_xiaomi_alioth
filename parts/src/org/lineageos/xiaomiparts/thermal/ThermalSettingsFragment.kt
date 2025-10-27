@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package co.aospa.xiaomiparts.thermal
+package org.lineageos.xiaomiparts.thermal
 
 import android.app.Activity
 import android.content.Context
@@ -29,9 +29,9 @@ import androidx.core.view.isVisible
 import androidx.preference.PreferenceFragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import co.aospa.xiaomiparts.R
-import co.aospa.xiaomiparts.thermal.ThermalUtils.ThermalState
-import co.aospa.xiaomiparts.utils.dlog
+import org.lineageos.xiaomiparts.R
+import org.lineageos.xiaomiparts.thermal.ThermalUtils.ThermalState
+import org.lineageos.xiaomiparts.utils.dlog
 import com.android.settingslib.widget.MainSwitchPreference
 
 /**

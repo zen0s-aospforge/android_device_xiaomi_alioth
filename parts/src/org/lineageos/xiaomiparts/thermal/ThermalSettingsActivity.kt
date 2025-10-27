@@ -4,14 +4,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package co.aospa.xiaomiparts.thermal
+package org.lineageos.xiaomiparts.thermal
 
 import android.app.AlertDialog
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
-import co.aospa.xiaomiparts.R
-import co.aospa.xiaomiparts.utils.dlog
+import org.lineageos.xiaomiparts.R
+import org.lineageos.xiaomiparts.utils.dlog
 import com.android.settingslib.collapsingtoolbar.CollapsingToolbarBaseActivity
 
 /** Thermal profile settings activity. */
