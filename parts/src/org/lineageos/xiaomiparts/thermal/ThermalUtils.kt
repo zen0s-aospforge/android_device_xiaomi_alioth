@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package co.aospa.xiaomiparts.thermal
+package org.lineageos.xiaomiparts.thermal
 
 import android.content.Context
 import android.content.Intent
@@ -15,9 +15,9 @@ import android.provider.MediaStore
 import android.telecom.DefaultDialerManager.getDefaultDialerApplication
 import androidx.annotation.StringRes
 import androidx.preference.PreferenceManager
-import co.aospa.xiaomiparts.R
-import co.aospa.xiaomiparts.utils.dlog
-import co.aospa.xiaomiparts.utils.writeLine
+import org.lineageos.xiaomiparts.R
+import org.lineageos.xiaomiparts.utils.dlog
+import org.lineageos.xiaomiparts.utils.writeLine
 import com.android.settingslib.applications.AppUtils.isBrowserApp
 
 /** Helper utility class for thermal profiles. */
