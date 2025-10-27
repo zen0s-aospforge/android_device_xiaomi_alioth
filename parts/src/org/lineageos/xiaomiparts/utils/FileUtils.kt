@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package co.aospa.xiaomiparts.utils
+package org.lineageos.xiaomiparts.utils
 
 import android.util.Log
 import java.io.File

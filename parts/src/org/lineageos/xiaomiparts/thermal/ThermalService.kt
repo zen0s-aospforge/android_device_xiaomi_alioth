@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package co.aospa.xiaomiparts.thermal
+package org.lineageos.xiaomiparts.thermal
 
 import android.app.ActivityTaskManager
 import android.app.Service
@@ -14,7 +14,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.IBinder
-import co.aospa.xiaomiparts.utils.dlog
+import org.lineageos.xiaomiparts.utils.dlog
 
 /** Service to monitor current top (foreground) app and set thermal profile accordingly. */
 class ThermalService : Service() {

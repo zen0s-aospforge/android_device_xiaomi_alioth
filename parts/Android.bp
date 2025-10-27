@@ -16,6 +16,20 @@ android_app {
     privileged: true,
 
     static_libs: [
-        "co.aospa.resources",
+        "org.lineageos.settings.resources",
     ],
+        
+    optimize: {
+        proguard_flags_files: ["proguard.flags"],
+    },
+
+    required: [
+        "privapp_whitelist_org.lineageos.settings.xml",
+    ],
+}
+prebuilt_etc {
+    name: "privapp_whitelist_org.lineageos.settings.xml",
+    src: "permissions/privapp_whitelist_org.lineageos.settings.xml",
+    sub_dir: "permissions",
+    system_ext_specific: true,
 }
