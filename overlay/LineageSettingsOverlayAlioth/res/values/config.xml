@@ -5,7 +5,7 @@
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <!-- Show battery cycle count -->
-    <bool name="config_show_battery_cycle_count" translatable="false">true</bool>
+    <bool name="config_show_battery_cycle_count" translatable="false">false</bool>
 
     <!-- The number of vibration intensity levels supported by the device.
 
