@@ -193,7 +193,7 @@ private constructor(
         ),
         DEFAULT(
             8,
-            "0", // thermal-normal.conf
+            "20", // thermal-mgame.conf [zenzer0rs: changed from normal.conf to mgame.conf, because mgame has lower frequency all cores are locked at 1.8GHz while normal.conf goes up to 2.4GHz]
             "thermal.default=",
             R.string.thermal_default,
         ),
