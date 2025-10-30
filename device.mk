@@ -245,6 +245,8 @@ PRODUCT_COPY_FILES += \
 
 # OMX
 TARGET_SUPPORTS_OMX_SERVICE := false
+# Init
+$(call soong_config_set,xiaomi_kona,variant_lib,//$(LOCAL_PATH):libvariant_xiaomi_alioth)
 
 # Overlays
 DEVICE_PACKAGE_OVERLAYS += \
