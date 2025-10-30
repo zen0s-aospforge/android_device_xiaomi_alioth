@@ -1,12 +1,12 @@
 //
-// Copyright (C) 2021-2025 The LineageOS Project
+// Copyright (C) 2025 The LineageOS Project
 //
 // SPDX-License-Identifier: Apache-2.0
 //
 
 cc_library_static {
-    name: "libvariant_xiaomi_alioth",
-    srcs: ["libvariant_xiaomi_alioth.cpp"],
+    name: "libvariant_default",
+    srcs: ["libvariant_default.cpp"],
     header_libs: ["libvariant_headers"],
     recovery_available: true,
 }
