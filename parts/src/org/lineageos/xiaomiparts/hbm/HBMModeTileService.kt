@@ -1,0 +1,108 @@
+/*
+* Copyright (C) 2018 The OmniROM Project
+* ... (and other headers)
+*/
+package org.lineageos.xiaomiparts.hbm
+
+import android.content.BroadcastReceiver
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.service.quicksettings.Tile
+import android.service.quicksettings.TileService
+import androidx.preference.PreferenceManager
+import org.lineageos.xiaomiparts.display.DcDimmingTileService
+import org.lineageos.xiaomiparts.utils.dlog
+
+import org.lineageos.xiaomiparts.hbm.HBMConstants.PREF_HBM_KEY
+
+class HBMModeTileService : TileService() {
+
+    private val screenStateReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (intent.action == Intent.ACTION_SCREEN_OFF) {
+                dlog(TAG, "Screen off: disabling HBM")
+                HBMManager.setHBMEnabled(context, false)
+                updateUI(false)
+            }
+        }
+    }
+
+    private fun updateUI(enabled: Boolean) {
+        dlog(TAG, "updateUI: enabled=$enabled")
+        val tile = qsTile
+        tile.state = if (enabled) Tile.STATE_ACTIVE else Tile.STATE_INACTIVE
+        tile.updateTile()
+    }
+
+    override fun onCreate() {
+        dlog(TAG, "onCreate")
+        super.onCreate()
+        val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_SCREEN_OFF)
+        }
+        registerReceiver(screenStateReceiver, filter)
+    }
+
+    override fun onDestroy() {
+        dlog(TAG, "onDestroy")
+        super.onDestroy()
+        unregisterReceiver(screenStateReceiver)
+    }
+
+    override fun onStartListening() {
+        dlog(TAG, "onStartListening")
+        super.onStartListening()
+        // Check preference instead of sysfs for instant UI update
+        val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+        val enabled = prefs.getBoolean(PREF_HBM_KEY, false)
+        updateUI(enabled)
+    }
+
+    override fun onClick() {
+        dlog(TAG, "onClick")
+        super.onClick()
+
+        val currentState = qsTile.state
+        val newState = if (currentState == Tile.STATE_ACTIVE) {
+            Tile.STATE_INACTIVE
+        } else {
+            Tile.STATE_ACTIVE
+        }
+        val newEnabledState = (newState == Tile.STATE_ACTIVE)
+
+        // Update UI instantly for responsive feel
+        updateUI(newEnabledState)
+
+        // Process actual system changes in background with delay
+        Thread {
+            try {
+                Thread.sleep(1000) // 1 second delay before writing
+                val success = HBMManager.setHBMEnabled(this, newEnabledState)
+                dlog(TAG, "HBM toggle result: success=$success")
+
+                if (!success) {
+                    // Revert UI if operation failed
+                    updateUI(currentState == Tile.STATE_ACTIVE)
+                }
+            } catch (e: Exception) {
+                dlog(TAG, "Error toggling HBM: ${e.message}")
+                updateUI(currentState == Tile.STATE_ACTIVE)
+            }
+        }.start()
+    }
+
+    companion object {
+        private const val TAG = "HBMModeTileService"
+
+        @JvmStatic
+        fun updateTile(context: Context, enabled: Boolean) {
+            dlog(TAG, "updateTile: enabled=$enabled")
+            requestListeningState(
+                context,
+                ComponentName(context, HBMModeTileService::class.java)
+            )
+        }
+    }
+}
