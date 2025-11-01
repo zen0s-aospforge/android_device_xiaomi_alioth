@@ -25,7 +25,13 @@ class BootCompletedReceiver : BroadcastReceiver() {
 
         Log.i(TAG, "Boot completed, restoring HBM, DC, and Thermal...")
 
-        ThermalUtils.getInstance(context).startService()
+        val thermalUtils = ThermalUtils.getInstance(context)
+        if (thermalUtils.enabled) {
+            thermalUtils.startService()
+        } else {
+            // Apply default thermal profile (value 20) when thermal profiles are disabled
+            thermalUtils.setDefaultThermalProfile()
+        }
 
         enableService(context)
 
