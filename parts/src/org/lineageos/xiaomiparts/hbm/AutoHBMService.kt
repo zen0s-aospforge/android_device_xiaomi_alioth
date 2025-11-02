@@ -11,170 +11,193 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.os.PowerManager
+import android.util.Log
 import androidx.preference.PreferenceManager
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import java.util.concurrent.Future
-import org.lineageos.xiaomiparts.hbm.HBMConstants.PREF_AUTO_HBM_THRESHOLD_KEY
-import org.lineageos.xiaomiparts.hbm.HBMConstants.PREF_HBM_DISABLE_TIME_KEY
 import org.lineageos.xiaomiparts.display.DcDimmingSettingsFragment.Companion.DC_DIMMING_ENABLE_KEY
-import org.lineageos.xiaomiparts.utils.dlog
-
 
 class AutoHBMService : Service() {
 
     private val TAG = "AutoHBMService"
-    private lateinit var mExecutorService: ExecutorService
-    private lateinit var mSensorManager: SensorManager
-    private var mLightSensor: Sensor? = null
-    private lateinit var mSharedPrefs: SharedPreferences
-    private var mCurrentLux = 0f
-    private var mDisableHBMFuture: Future<*>? = null
-
-    fun activateLightSensorRead() {
-        submit {
-            mSensorManager = applicationContext.getSystemService(Context.SENSOR_SERVICE) as SensorManager
-            mLightSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT)
-            mLightSensor?.let {
-                mSensorManager.registerListener(
-                    mSensorEventListener,
-                    it,
-                    SensorManager.SENSOR_DELAY_NORMAL
-                )
-            }
-        }
-    }
-
-    fun deactivateLightSensorRead() {
-        submit {
-            if (::mSensorManager.isInitialized) {
-                mSensorManager.unregisterListener(mSensorEventListener)
-            }
-            
-            // Only disable HBM if THIS service enabled it (mAutoHBMActive = true)
-            // Don't disable if user manually enabled HBM
-            if (mAutoHBMActive) {
-                dlog(TAG, "Screen off: disabling auto-enabled HBM")
-                mAutoHBMActive = false
-                HBMManager.setHBMEnabled(this, false)
-            } else {
-                dlog(TAG, "Screen off: HBM not auto-enabled, leaving it alone")
-            }
-        }
-    }
-
-    private val mSensorEventListener: SensorEventListener = object : SensorEventListener {
+    
+    private lateinit var sensorManager: SensorManager
+    private lateinit var powerManager: PowerManager
+    private lateinit var keyguardManager: KeyguardManager
+    private lateinit var prefs: SharedPreferences
+    
+    private var lightSensor: Sensor? = null
+    private var currentLux = 0f
+    
+    private val handler = Handler(Looper.getMainLooper())
+    private var disableHBMRunnable: Runnable? = null
+    
+    private var autoHBMActive = false
+    
+    private val lightSensorListener = object : SensorEventListener {
         override fun onSensorChanged(event: SensorEvent) {
-            mCurrentLux = event.values[0]
-            val km = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
-            val keyguardShowing = km.inKeyguardRestrictedInputMode()
-            val luxThreshold = mSharedPrefs.getString(
-                PREF_AUTO_HBM_THRESHOLD_KEY, "20000"
+            currentLux = event.values[0]
+            
+            val luxThreshold = prefs.getString(
+                HBMManager.PREF_AUTO_HBM_THRESHOLD_KEY,
+                "20000"
             )?.toFloatOrNull() ?: 20000f
-
-            val timeToDisableHBM = mSharedPrefs.getString(
-                PREF_HBM_DISABLE_TIME_KEY, "1"
+            
+            val disableDelaySeconds = prefs.getString(
+                HBMManager.PREF_HBM_DISABLE_TIME_KEY,
+                "1"
             )?.toLongOrNull() ?: 1L
-
-            val dcDimmingEnabled = mSharedPrefs.getBoolean(DC_DIMMING_ENABLE_KEY, false)
-
-            if (mCurrentLux > luxThreshold) {
-                // Cancel any pending disable task
-                mDisableHBMFuture?.cancel(true)
-                mDisableHBMFuture = null
-                
-                if ((!mAutoHBMActive || !HBMManager.isHBMEnabled()) && !keyguardShowing && !dcDimmingEnabled) {
-                    dlog(TAG, "Lux above threshold ($mCurrentLux > $luxThreshold), enabling HBM")
-                    mAutoHBMActive = true
-                    HBMManager.setHBMEnabled(this@AutoHBMService, true)
+            
+            val isLocked = keyguardManager.isKeyguardLocked
+            val dcDimmingEnabled = prefs.getBoolean(DC_DIMMING_ENABLE_KEY, false)
+            
+            if (currentLux > luxThreshold) {
+                disableHBMRunnable?.let {
+                    handler.removeCallbacks(it)
+                    disableHBMRunnable = null
                 }
-            } else if (mCurrentLux < luxThreshold) {
-                if (mAutoHBMActive) {
-                    // Cancel previous disable task if exists
-                    mDisableHBMFuture?.cancel(true)
-                    
-                    // Schedule new disable task
-                    mDisableHBMFuture = mExecutorService.submit {
-                        try {
-                            Thread.sleep(timeToDisableHBM * 1000)
-                        } catch (e: InterruptedException) {
-                            return@submit
-                        }
-                    
-                        // Recheck lux after delay to ensure it's still below threshold
-                        if (mCurrentLux < luxThreshold) {
-                            dlog(TAG, "Lux still below threshold ($mCurrentLux < $luxThreshold) after delay, disabling HBM")
-                            mAutoHBMActive = false
-                            HBMManager.setHBMEnabled(this@AutoHBMService, false)
-                        } else {
-                            dlog(TAG, "Lux increased during delay ($mCurrentLux >= $luxThreshold), keeping HBM enabled")
+                
+                if (!isLocked && !dcDimmingEnabled && !autoHBMActive) {
+                    Log.i(TAG, "Lux $currentLux > $luxThreshold, enabling Auto HBM")
+                    HBMManager.enableHBM(applicationContext, HBMManager.HBMOwner.AUTO_SERVICE) { success ->
+                        if (success) {
+                            autoHBMActive = true
+                            Log.i(TAG, "Auto HBM enabled successfully")
                         }
                     }
                 }
             }
+            else if (currentLux < luxThreshold && autoHBMActive) {
+                disableHBMRunnable?.let {
+                    handler.removeCallbacks(it)
+                }
+                
+                disableHBMRunnable = Runnable {
+                    if (currentLux < luxThreshold && autoHBMActive) {
+                        Log.i(TAG, "Lux $currentLux < $luxThreshold after delay, disabling Auto HBM")
+                        HBMManager.disableHBM(applicationContext, HBMManager.HBMOwner.AUTO_SERVICE) { success ->
+                            if (success) {
+                                autoHBMActive = false
+                                Log.i(TAG, "Auto HBM disabled successfully")
+                            }
+                        }
+                    } else {
+                        Log.i(TAG, "Lux increased during delay, keeping Auto HBM enabled")
+                    }
+                    disableHBMRunnable = null
+                }
+                
+                handler.postDelayed(disableHBMRunnable!!, disableDelaySeconds * 1000)
+                Log.i(TAG, "Scheduled Auto HBM disable in ${disableDelaySeconds}s")
+            }
         }
-
+        
         override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {
         }
     }
-
-    private val mScreenStateReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+    
+    private val screenStateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
-                Intent.ACTION_SCREEN_ON -> activateLightSensorRead()
-                Intent.ACTION_SCREEN_OFF -> deactivateLightSensorRead()
+                Intent.ACTION_SCREEN_ON -> {
+                    Log.i(TAG, "Screen ON - activating light sensor")
+                    activateLightSensor()
+                }
+                Intent.ACTION_SCREEN_OFF -> {
+                    Log.i(TAG, "Screen OFF - deactivating light sensor")
+                    deactivateLightSensor()
+                }
             }
         }
     }
-
+    
     override fun onCreate() {
-        mExecutorService = Executors.newSingleThreadExecutor()
-
-        val screenStateFilter = IntentFilter(Intent.ACTION_SCREEN_ON).apply {
+        super.onCreate()
+        Log.i(TAG, "AutoHBMService created")
+        
+        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+        keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
+        prefs = PreferenceManager.getDefaultSharedPreferences(this)
+        
+        lightSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT)
+        if (lightSensor == null) {
+            Log.e(TAG, "No light sensor found! Auto HBM will not work")
+        }
+        
+        val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_SCREEN_ON)
             addAction(Intent.ACTION_SCREEN_OFF)
         }
-        registerReceiver(mScreenStateReceiver, screenStateFilter)
-
-        mSharedPrefs = PreferenceManager.getDefaultSharedPreferences(applicationContext)
-        val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
-
-        if (pm.isInteractive) {
-            activateLightSensorRead()
+        registerReceiver(screenStateReceiver, filter)
+        
+        if (powerManager.isInteractive) {
+            Log.i(TAG, "Screen is on at service start, activating sensor")
+            activateLightSensor()
         }
     }
-
-    private fun submit(runnable: Runnable): Future<*> {
-        return mExecutorService.submit(runnable)
-    }
-
+    
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Log.i(TAG, "AutoHBMService started")
         return START_STICKY
     }
-
+    
     override fun onDestroy() {
         super.onDestroy()
-        unregisterReceiver(mScreenStateReceiver)
+        Log.i(TAG, "AutoHBMService destroyed")
         
-        // Only disable HBM if we actually enabled it
-        if (mAutoHBMActive) {
-            mAutoHBMActive = false
-            HBMManager.setHBMEnabled(this, false)
+        try {
+            unregisterReceiver(screenStateReceiver)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error unregistering receiver", e)
         }
         
-        // Unregister sensor without side effects
-        mSensorManager.unregisterListener(mSensorEventListener)
-        mDisableHBMFuture?.cancel(true)
+        deactivateLightSensor()
         
-        mExecutorService.shutdown()
+        if (autoHBMActive) {
+            Log.i(TAG, "Service stopping - disabling Auto HBM")
+            HBMManager.disableHBM(applicationContext, HBMManager.HBMOwner.AUTO_SERVICE)
+            autoHBMActive = false
+        }
+        
+        disableHBMRunnable?.let {
+            handler.removeCallbacks(it)
+            disableHBMRunnable = null
+        }
     }
-
+    
     override fun onBind(intent: Intent?): IBinder? = null
-
-    companion object {
-
-        @JvmStatic
-        private var mAutoHBMActive = false
+    
+    private fun activateLightSensor() {
+        lightSensor?.let { sensor ->
+            val registered = sensorManager.registerListener(
+                lightSensorListener,
+                sensor,
+                SensorManager.SENSOR_DELAY_NORMAL
+            )
+            if (registered) {
+                Log.i(TAG, "Light sensor activated")
+            } else {
+                Log.e(TAG, "Failed to register light sensor listener")
+            }
+        }
+    }
+    
+    private fun deactivateLightSensor() {
+        sensorManager.unregisterListener(lightSensorListener)
+        Log.i(TAG, "Light sensor deactivated")
+        
+        disableHBMRunnable?.let {
+            handler.removeCallbacks(it)
+            disableHBMRunnable = null
+        }
+        
+        if (autoHBMActive) {
+            Log.i(TAG, "Screen off - disabling Auto HBM")
+            HBMManager.disableHBM(applicationContext, HBMManager.HBMOwner.AUTO_SERVICE)
+            autoHBMActive = false
+        }
     }
 }

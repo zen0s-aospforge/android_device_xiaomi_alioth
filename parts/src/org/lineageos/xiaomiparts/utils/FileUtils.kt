@@ -61,7 +61,7 @@ fun getFileValue(filename: String, defValue: String): String {
 }
 
 fun enableService(context: Context) {
-    val autoHBMEnabled = HBMFragment.isAUTOHBMEnabled(context)
+    val autoHBMEnabled = HBMFragment.isAutoHBMEnabled(context)
     if (autoHBMEnabled) {
         context.startServiceAsUser(
             Intent(context, AutoHBMService::class.java),

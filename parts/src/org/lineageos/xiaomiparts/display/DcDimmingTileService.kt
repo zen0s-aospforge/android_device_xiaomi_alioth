@@ -29,7 +29,6 @@ import androidx.preference.PreferenceManager
 import org.lineageos.xiaomiparts.utils.writeLine
 import java.io.File
 
-import org.lineageos.xiaomiparts.hbm.HBMConstants.HBM_SYSFS_PATH
 import org.lineageos.xiaomiparts.hbm.HBMManager
 import org.lineageos.xiaomiparts.hbm.HBMModeTileService
 import org.lineageos.xiaomiparts.display.DcDimmingSettingsFragment.Companion.DC_DIMMING_ENABLE_KEY
@@ -59,12 +58,9 @@ class DcDimmingTileService : TileService() {
     private fun disableHBM() {
         // Update HBM preference to false immediately for instant UI sync
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)
-        prefs.edit().putBoolean(
-            org.lineageos.xiaomiparts.hbm.HBMConstants.PREF_HBM_KEY, 
-            false
-        ).apply()
+        prefs.edit().putBoolean(HBMManager.PREF_HBM_KEY, false).apply()
         
-        HBMManager.setHBMEnabled(this, false)
+        HBMManager.disableHBM(this, HBMManager.HBMOwner.MANUAL)
 
         hbmFile?.setReadOnly()
 
@@ -77,7 +73,7 @@ class DcDimmingTileService : TileService() {
             addAction(Intent.ACTION_SCREEN_OFF)
         }
         registerReceiver(screenStateReceiver, filter)
-        hbmFile = File(HBM_SYSFS_PATH)
+        hbmFile = File("/sys/class/drm/card0/card0-DSI-1/disp_param")
     }
 
     override fun onDestroy() {
@@ -113,10 +109,9 @@ class DcDimmingTileService : TileService() {
         val sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this)
         sharedPrefs.edit().putBoolean(DC_DIMMING_ENABLE_KEY, newEnabledState).apply()
 
-        // Process actual system changes in background with delay
+        // Process actual system changes in background (no delay needed for DC Dimming)
         Thread {
             try {
-                Thread.sleep(1000) // 1 second delay before writing
                 writeLine(DC_DIMMING_NODE, if (newEnabledState) "1" else "0")
 
                 if (newEnabledState) {

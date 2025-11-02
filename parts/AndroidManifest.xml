@@ -20,6 +20,16 @@
                 <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
+        
+         <!-- HBM Boot Receiver - dedicated HBM initialization -->
+        <receiver
+            android:name=".hbm.HBMBootReceiver"
+            android:exported="false"
+            android:directBootAware="true">
+            <intent-filter android:priority="999">
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
 
         <activity
             android:name=".thermal.ThermalSettingsActivity"

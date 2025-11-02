@@ -22,7 +22,6 @@ import androidx.preference.PreferenceFragment
 import androidx.preference.SwitchPreference
 import androidx.preference.PreferenceManager
 import org.lineageos.xiaomiparts.R
-import org.lineageos.xiaomiparts.hbm.HBMConstants
 import org.lineageos.xiaomiparts.hbm.HBMManager
 import org.lineageos.xiaomiparts.hbm.HBMModeTileService
 import org.lineageos.xiaomiparts.utils.dlog
@@ -51,7 +50,7 @@ class DcDimmingSettingsFragment : PreferenceFragment(), Preference.OnPreferenceC
             mDcDimmingPreference?.isEnabled = false
         }
 
-        hbmFile = File(HBMConstants.HBM_SYSFS_PATH)
+        hbmFile = File("/sys/class/drm/card0/card0-DSI-1/disp_param")
     }
 
     override fun onPreferenceChange(preference: Preference, newValue: Any?): Boolean {
@@ -78,9 +77,9 @@ class DcDimmingSettingsFragment : PreferenceFragment(), Preference.OnPreferenceC
         
         // Update HBM preference to false immediately for instant UI sync
         val prefs = PreferenceManager.getDefaultSharedPreferences(activity)
-        prefs.edit().putBoolean(HBMConstants.PREF_HBM_KEY, false).apply()
+        prefs.edit().putBoolean(HBMManager.PREF_HBM_KEY, false).apply()
         
-        HBMManager.setHBMEnabled(activity, false)
+        HBMManager.disableHBM(activity, HBMManager.HBMOwner.MANUAL)
         hbmFile?.setReadOnly()
         HBMModeTileService.updateTile(activity, false)
     }

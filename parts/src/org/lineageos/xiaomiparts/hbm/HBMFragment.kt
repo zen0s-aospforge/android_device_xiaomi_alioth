@@ -1,97 +1,119 @@
-/*
- * Copyright (C) 2016 The OmniROM Project
- * ... (and other headers)
- */
 package org.lineageos.xiaomiparts.hbm
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
+import android.os.UserHandle
+import android.util.Log
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragment
 import androidx.preference.PreferenceManager
 import androidx.preference.TwoStatePreference
 import org.lineageos.xiaomiparts.R
-import org.lineageos.xiaomiparts.utils.dlog
-import org.lineageos.xiaomiparts.utils.enableService
-import org.lineageos.xiaomiparts.hbm.HBMConstants.PREF_AUTO_HBM_KEY
-import org.lineageos.xiaomiparts.hbm.HBMConstants.PREF_HBM_KEY
+import org.lineageos.xiaomiparts.display.DcDimmingSettingsFragment.Companion.DC_DIMMING_ENABLE_KEY
+import org.lineageos.xiaomiparts.display.DcDimmingTileService
+import org.lineageos.xiaomiparts.utils.writeLine
 
-class HBMFragment : PreferenceFragment(), Preference.OnPreferenceChangeListener {
+class HBMFragment : PreferenceFragment() {
 
-    private var mAutoHBMSwitch: TwoStatePreference? = null
+    private val TAG = "HBMFragment"
+
+    private var hbmPreference: TwoStatePreference? = null
+    private var autoHBMPreference: TwoStatePreference? = null
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
-        dlog(TAG, "onCreatePreferences")
-        val prefs = PreferenceManager.getDefaultSharedPreferences(activity)
+        Log.i(TAG, "Creating HBM preferences")
         addPreferencesFromResource(R.xml.hbm_settings)
 
-        findPreference<TwoStatePreference>(PREF_HBM_KEY)?.apply {
+        val prefs = PreferenceManager.getDefaultSharedPreferences(activity)
+
+        hbmPreference = findPreference<TwoStatePreference>(HBMManager.PREF_HBM_KEY)?.apply {
             onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
                 val enabled = newValue as? Boolean ?: false
-                dlog(TAG, "HBM preference changed: enabled=$enabled")
+                Log.i(TAG, "Manual HBM preference changed: $enabled")
                 
-                // If enabling HBM, check and disable DC Dimming
-                if (enabled) {
-                    val prefs = PreferenceManager.getDefaultSharedPreferences(activity)
-                    val dcDimmingEnabled = prefs.getBoolean(
-                        org.lineageos.xiaomiparts.display.DcDimmingSettingsFragment.DC_DIMMING_ENABLE_KEY,
-                        false
-                    )
-                    
-                    if (dcDimmingEnabled) {
-                        dlog(TAG, "Disabling DC Dimming to enable HBM")
-                        // Disable DC Dimming
-                        prefs.edit().putBoolean(
-                            org.lineageos.xiaomiparts.display.DcDimmingSettingsFragment.DC_DIMMING_ENABLE_KEY,
-                            false
-                        ).apply()
-                        org.lineageos.xiaomiparts.utils.writeLine(
-                            org.lineageos.xiaomiparts.display.DcDimmingSettingsFragment.DC_DIMMING_NODE,
-                            "0"
-                        )
-                        org.lineageos.xiaomiparts.display.DcDimmingTileService.updateTile(activity)
-                    }
-                }
-                
-                val success = HBMManager.setHBMEnabled(activity, enabled)
-
-                if (success) {
-                    HBMModeTileService.updateTile(activity, enabled)
-                }
-                
-                success
+                handleHBMToggle(enabled)
             }
         }
 
-        mAutoHBMSwitch = findPreference<TwoStatePreference>(PREF_AUTO_HBM_KEY)?.apply {
-            onPreferenceChangeListener = this@HBMFragment
-            isChecked = prefs.getBoolean(PREF_AUTO_HBM_KEY, false)
+        autoHBMPreference = findPreference<TwoStatePreference>(HBMManager.PREF_AUTO_HBM_KEY)?.apply {
+            isChecked = prefs.getBoolean(HBMManager.PREF_AUTO_HBM_KEY, false)
+            
+            onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
+                val enabled = newValue as? Boolean ?: false
+                Log.i(TAG, "Auto HBM preference changed: $enabled")
+                
+                prefs.edit().putBoolean(HBMManager.PREF_AUTO_HBM_KEY, enabled).apply()
+                
+                controlAutoHBMService(enabled)
+                
+                true
+            }
         }
     }
 
-    override fun onPreferenceChange(preference: Preference, newValue: Any?): Boolean {
-        if (preference === mAutoHBMSwitch) {
-            val enabled = newValue as? Boolean ?: return false
-            dlog(TAG, "Auto HBM preference changed: enabled=$enabled")
+    private fun handleHBMToggle(enable: Boolean): Boolean {
+        val prefs = PreferenceManager.getDefaultSharedPreferences(activity)
+        
+        if (enable) {
+            val dcDimmingEnabled = prefs.getBoolean(DC_DIMMING_ENABLE_KEY, false)
             
-            PreferenceManager.getDefaultSharedPreferences(activity).edit()
-                .putBoolean(PREF_AUTO_HBM_KEY, enabled)
-                .apply()
-            
-            enableService(activity)
-            
-            return true
+            if (dcDimmingEnabled) {
+                Log.i(TAG, "Disabling DC Dimming to enable HBM")
+                
+                prefs.edit().putBoolean(DC_DIMMING_ENABLE_KEY, false).apply()
+                writeLine(
+                    org.lineageos.xiaomiparts.display.DcDimmingSettingsFragment.DC_DIMMING_NODE,
+                    "0"
+                )
+                
+                DcDimmingTileService.updateTile(activity)
+            }
         }
-        return false
+        
+        var result = false
+        if (enable) {
+            HBMManager.enableHBM(activity, HBMManager.HBMOwner.MANUAL) { success ->
+                result = success
+                if (!success) {
+                    Log.w(TAG, "Failed to enable HBM, reverting preference")
+                    activity?.runOnUiThread {
+                        hbmPreference?.isChecked = false
+                    }
+                }
+            }
+        } else {
+            HBMManager.disableHBM(activity, HBMManager.HBMOwner.MANUAL) { success ->
+                result = success
+                if (!success) {
+                    Log.w(TAG, "Failed to disable HBM, reverting preference")
+                    activity?.runOnUiThread {
+                        hbmPreference?.isChecked = true
+                    }
+                }
+            }
+        }
+        
+        return true
+    }
+
+    private fun controlAutoHBMService(enable: Boolean) {
+        val intent = Intent(activity, AutoHBMService::class.java)
+        
+        if (enable) {
+            Log.i(TAG, "Starting AutoHBMService")
+            activity.startServiceAsUser(intent, UserHandle.CURRENT)
+        } else {
+            Log.i(TAG, "Stopping AutoHBMService")
+            activity.stopServiceAsUser(intent, UserHandle.CURRENT)
+        }
     }
 
     companion object {
-        private const val TAG = "HBMFragment"
-
         @JvmStatic
-        fun isAUTOHBMEnabled(context: Context): Boolean {
+        fun isAutoHBMEnabled(context: Context): Boolean {
             return PreferenceManager.getDefaultSharedPreferences(context)
-                .getBoolean(PREF_AUTO_HBM_KEY, false)
+                .getBoolean(HBMManager.PREF_AUTO_HBM_KEY, false)
         }
     }
 }
