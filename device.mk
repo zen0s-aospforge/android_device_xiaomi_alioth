@@ -273,6 +273,7 @@ PRODUCT_PACKAGES += \
     LineageSettingsAlioth \
     SettingsProviderResAlioth \
     SystemUIAlioth \
+    OpenDeltaOverlayKona
     TelephonyAlioth \
     WifiResAlioth
 
