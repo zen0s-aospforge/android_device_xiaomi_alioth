@@ -22,9 +22,26 @@ class HBMModeTileService : TileService() {
     private val screenStateReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.action == Intent.ACTION_SCREEN_OFF) {
-                dlog(TAG, "Screen off: disabling HBM")
-                HBMManager.setHBMEnabled(context, false)
-                updateUI(false)
+                // First check if HBM is actually enabled in hardware
+                if (!HBMManager.isHBMEnabled()) {
+                    dlog(TAG, "Screen off: HBM already disabled, skipping")
+                    return
+                }
+                
+                // Only disable HBM if it was NOT manually enabled by user
+                // Check the HBM preference to determine if user manually enabled it
+                val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+                val manuallyEnabled = prefs.getBoolean(PREF_HBM_KEY, false)
+                
+                if (!manuallyEnabled) {
+                    // HBM was auto-enabled (by AutoHBMService or temporary), safe to disable
+                    dlog(TAG, "Screen off: disabling auto-enabled HBM")
+                    HBMManager.setHBMEnabled(context, false)
+                    updateUI(false)
+                } else {
+                    // User manually enabled HBM, keep it on
+                    dlog(TAG, "Screen off: keeping manually-enabled HBM active")
+                }
             }
         }
     }

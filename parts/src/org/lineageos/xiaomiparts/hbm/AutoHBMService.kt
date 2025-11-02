@@ -52,8 +52,16 @@ class AutoHBMService : Service() {
             if (::mSensorManager.isInitialized) {
                 mSensorManager.unregisterListener(mSensorEventListener)
             }
-            mAutoHBMActive = false
-            HBMManager.setHBMEnabled(this, false)
+            
+            // Only disable HBM if THIS service enabled it (mAutoHBMActive = true)
+            // Don't disable if user manually enabled HBM
+            if (mAutoHBMActive) {
+                dlog(TAG, "Screen off: disabling auto-enabled HBM")
+                mAutoHBMActive = false
+                HBMManager.setHBMEnabled(this, false)
+            } else {
+                dlog(TAG, "Screen off: HBM not auto-enabled, leaving it alone")
+            }
         }
     }
 
@@ -148,10 +156,17 @@ class AutoHBMService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         unregisterReceiver(mScreenStateReceiver)
-        val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
-        if (pm.isInteractive) {
-            deactivateLightSensorRead()
+        
+        // Only disable HBM if we actually enabled it
+        if (mAutoHBMActive) {
+            mAutoHBMActive = false
+            HBMManager.setHBMEnabled(this, false)
         }
+        
+        // Unregister sensor without side effects
+        mSensorManager.unregisterListener(mSensorEventListener)
+        mDisableHBMFuture?.cancel(true)
+        
         mExecutorService.shutdown()
     }
 
