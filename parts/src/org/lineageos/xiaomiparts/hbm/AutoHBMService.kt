@@ -19,16 +19,19 @@ import java.util.concurrent.Executors
 import java.util.concurrent.Future
 import org.lineageos.xiaomiparts.hbm.HBMConstants.PREF_AUTO_HBM_THRESHOLD_KEY
 import org.lineageos.xiaomiparts.hbm.HBMConstants.PREF_HBM_DISABLE_TIME_KEY
+import org.lineageos.xiaomiparts.display.DcDimmingSettingsFragment.Companion.DC_DIMMING_ENABLE_KEY
+import org.lineageos.xiaomiparts.utils.dlog
 
 
 class AutoHBMService : Service() {
 
+    private val TAG = "AutoHBMService"
     private lateinit var mExecutorService: ExecutorService
     private lateinit var mSensorManager: SensorManager
     private var mLightSensor: Sensor? = null
     private lateinit var mSharedPrefs: SharedPreferences
-
-    private var dcDimmingEnabled = false
+    private var mCurrentLux = 0f
+    private var mDisableHBMFuture: Future<*>? = null
 
     fun activateLightSensorRead() {
         submit {
@@ -56,7 +59,7 @@ class AutoHBMService : Service() {
 
     private val mSensorEventListener: SensorEventListener = object : SensorEventListener {
         override fun onSensorChanged(event: SensorEvent) {
-            val lux = event.values[0]
+            mCurrentLux = event.values[0]
             val km = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
             val keyguardShowing = km.inKeyguardRestrictedInputMode()
             val luxThreshold = mSharedPrefs.getString(
@@ -67,22 +70,38 @@ class AutoHBMService : Service() {
                 PREF_HBM_DISABLE_TIME_KEY, "1"
             )?.toLongOrNull() ?: 1L
 
-            if (lux > luxThreshold) {
+            val dcDimmingEnabled = mSharedPrefs.getBoolean(DC_DIMMING_ENABLE_KEY, false)
+
+            if (mCurrentLux > luxThreshold) {
+                // Cancel any pending disable task
+                mDisableHBMFuture?.cancel(true)
+                mDisableHBMFuture = null
+                
                 if ((!mAutoHBMActive || !HBMManager.isHBMEnabled()) && !keyguardShowing && !dcDimmingEnabled) {
+                    dlog(TAG, "Lux above threshold ($mCurrentLux > $luxThreshold), enabling HBM")
                     mAutoHBMActive = true
                     HBMManager.setHBMEnabled(this@AutoHBMService, true)
                 }
-            } else if (lux < luxThreshold) {
+            } else if (mCurrentLux < luxThreshold) {
                 if (mAutoHBMActive) {
-                    mExecutorService.submit {
+                    // Cancel previous disable task if exists
+                    mDisableHBMFuture?.cancel(true)
+                    
+                    // Schedule new disable task
+                    mDisableHBMFuture = mExecutorService.submit {
                         try {
                             Thread.sleep(timeToDisableHBM * 1000)
                         } catch (e: InterruptedException) {
+                            return@submit
                         }
                     
-                        if (lux < luxThreshold) {
+                        // Recheck lux after delay to ensure it's still below threshold
+                        if (mCurrentLux < luxThreshold) {
+                            dlog(TAG, "Lux still below threshold ($mCurrentLux < $luxThreshold) after delay, disabling HBM")
                             mAutoHBMActive = false
                             HBMManager.setHBMEnabled(this@AutoHBMService, false)
+                        } else {
+                            dlog(TAG, "Lux increased during delay ($mCurrentLux >= $luxThreshold), keeping HBM enabled")
                         }
                     }
                 }

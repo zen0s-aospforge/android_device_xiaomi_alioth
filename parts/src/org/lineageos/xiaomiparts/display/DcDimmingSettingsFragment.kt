@@ -20,6 +20,7 @@ import android.os.Bundle
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragment
 import androidx.preference.SwitchPreference
+import androidx.preference.PreferenceManager
 import org.lineageos.xiaomiparts.R
 import org.lineageos.xiaomiparts.hbm.HBMConstants
 import org.lineageos.xiaomiparts.hbm.HBMManager
@@ -74,6 +75,11 @@ class DcDimmingSettingsFragment : PreferenceFragment(), Preference.OnPreferenceC
 
     private fun disableHBM() {
         dlog(TAG, "Disabling HBM due to DC dimming enable")
+        
+        // Update HBM preference to false immediately for instant UI sync
+        val prefs = PreferenceManager.getDefaultSharedPreferences(activity)
+        prefs.edit().putBoolean(HBMConstants.PREF_HBM_KEY, false).apply()
+        
         HBMManager.setHBMEnabled(activity, false)
         hbmFile?.setReadOnly()
         HBMModeTileService.updateTile(activity, false)

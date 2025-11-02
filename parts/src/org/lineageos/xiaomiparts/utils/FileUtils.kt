@@ -60,29 +60,17 @@ fun getFileValue(filename: String, defValue: String): String {
     return readOneLine(filename) ?: defValue
 }
 
-private var mServiceEnabled = false
-
-private fun startService(context: Context) {
-    context.startServiceAsUser(
-        Intent(context, AutoHBMService::class.java),
-        UserHandle.CURRENT
-    )
-    mServiceEnabled = true
-}
-
-private fun stopService(context: Context) {
-    mServiceEnabled = false
-    context.stopServiceAsUser(
-        Intent(context, AutoHBMService::class.java),
-        UserHandle.CURRENT
-    )
-}
-
 fun enableService(context: Context) {
     val autoHBMEnabled = HBMFragment.isAUTOHBMEnabled(context)
-    if (autoHBMEnabled && !mServiceEnabled) {
-        startService(context)
-    } else if (!autoHBMEnabled && mServiceEnabled) {
-        stopService(context)
+    if (autoHBMEnabled) {
+        context.startServiceAsUser(
+            Intent(context, AutoHBMService::class.java),
+            UserHandle.CURRENT
+        )
+    } else {
+        context.stopServiceAsUser(
+            Intent(context, AutoHBMService::class.java),
+            UserHandle.CURRENT
+        )
     }
 }

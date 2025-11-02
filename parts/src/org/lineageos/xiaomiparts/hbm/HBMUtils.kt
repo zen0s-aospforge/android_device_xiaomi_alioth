@@ -16,6 +16,7 @@ object HBMConstants {
     const val PREF_AUTO_HBM_KEY = "auto_hbm"
     const val PREF_AUTO_HBM_THRESHOLD_KEY = "auto_hbm_threshold"
     const val PREF_HBM_DISABLE_TIME_KEY = "hbm_disable_time"
+    const val PREF_HBM_SAVED_BRIGHTNESS_MODE = "hbm_saved_brightness_mode"
 }
 
 object HBMManager {
@@ -42,7 +43,15 @@ object HBMManager {
         }
 
         if (enable) {
-            dlog(TAG, "Enabling HBM: setting brightness mode to manual and max brightness")
+            // Save current brightness mode before enabling HBM
+            val currentMode = Settings.System.getInt(
+                resolver,
+                Settings.System.SCREEN_BRIGHTNESS_MODE,
+                Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC
+            )
+            prefs.edit().putInt(HBMConstants.PREF_HBM_SAVED_BRIGHTNESS_MODE, currentMode).apply()
+            
+            dlog(TAG, "Enabling HBM: saved mode=$currentMode, setting to manual and max brightness")
             Settings.System.putInt(
                 resolver,
                 Settings.System.SCREEN_BRIGHTNESS_MODE,
@@ -51,17 +60,27 @@ object HBMManager {
             writeLine(HBMConstants.BACKLIGHT_SYSFS_PATH, "2047")
             Settings.System.putInt(resolver, Settings.System.SCREEN_BRIGHTNESS, 255)
         } else {
-            dlog(TAG, "Disabling HBM: resetting brightness mode")
-            Settings.System.putInt(
-                resolver,
-                Settings.System.SCREEN_BRIGHTNESS_MODE,
-                Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL
-            )
-
+            // First set to AUTO to trigger brightness refresh based on ambient light
+            dlog(TAG, "Disabling HBM: triggering brightness refresh via AUTO mode")
             Settings.System.putInt(
                 resolver,
                 Settings.System.SCREEN_BRIGHTNESS_MODE,
                 Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC
+            )
+
+            // Wait for system to read ambient light and calculate brightness
+            Thread.sleep(1000)
+
+            // Then restore the original brightness mode (AUTO or MANUAL)
+            val savedMode = prefs.getInt(
+                HBMConstants.PREF_HBM_SAVED_BRIGHTNESS_MODE,
+                Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC
+            )
+            dlog(TAG, "Restoring saved brightness mode: $savedMode")
+            Settings.System.putInt(
+                resolver,
+                Settings.System.SCREEN_BRIGHTNESS_MODE,
+                savedMode
             )
         }
 

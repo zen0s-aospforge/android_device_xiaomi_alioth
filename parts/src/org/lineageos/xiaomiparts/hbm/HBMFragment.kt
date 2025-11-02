@@ -30,6 +30,29 @@ class HBMFragment : PreferenceFragment(), Preference.OnPreferenceChangeListener 
                 val enabled = newValue as? Boolean ?: false
                 dlog(TAG, "HBM preference changed: enabled=$enabled")
                 
+                // If enabling HBM, check and disable DC Dimming
+                if (enabled) {
+                    val prefs = PreferenceManager.getDefaultSharedPreferences(activity)
+                    val dcDimmingEnabled = prefs.getBoolean(
+                        org.lineageos.xiaomiparts.display.DcDimmingSettingsFragment.DC_DIMMING_ENABLE_KEY,
+                        false
+                    )
+                    
+                    if (dcDimmingEnabled) {
+                        dlog(TAG, "Disabling DC Dimming to enable HBM")
+                        // Disable DC Dimming
+                        prefs.edit().putBoolean(
+                            org.lineageos.xiaomiparts.display.DcDimmingSettingsFragment.DC_DIMMING_ENABLE_KEY,
+                            false
+                        ).apply()
+                        org.lineageos.xiaomiparts.utils.writeLine(
+                            org.lineageos.xiaomiparts.display.DcDimmingSettingsFragment.DC_DIMMING_NODE,
+                            "0"
+                        )
+                        org.lineageos.xiaomiparts.display.DcDimmingTileService.updateTile(activity)
+                    }
+                }
+                
                 val success = HBMManager.setHBMEnabled(activity, enabled)
 
                 if (success) {

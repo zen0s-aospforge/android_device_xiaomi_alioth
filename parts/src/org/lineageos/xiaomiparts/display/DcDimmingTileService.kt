@@ -18,6 +18,7 @@
 package org.lineageos.xiaomiparts.display
 
 import android.content.BroadcastReceiver
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -56,6 +57,13 @@ class DcDimmingTileService : TileService() {
     }
 
     private fun disableHBM() {
+        // Update HBM preference to false immediately for instant UI sync
+        val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+        prefs.edit().putBoolean(
+            org.lineageos.xiaomiparts.hbm.HBMConstants.PREF_HBM_KEY, 
+            false
+        ).apply()
+        
         HBMManager.setHBMEnabled(this, false)
 
         hbmFile?.setReadOnly()
@@ -123,5 +131,15 @@ class DcDimmingTileService : TileService() {
                 sharedPrefs.edit().putBoolean(DC_DIMMING_ENABLE_KEY, currentState == Tile.STATE_ACTIVE).apply()
             }
         }.start()
+    }
+
+    companion object {
+        @JvmStatic
+        fun updateTile(context: Context) {
+            requestListeningState(
+                context,
+                ComponentName(context, DcDimmingTileService::class.java)
+            )
+        }
     }
 }

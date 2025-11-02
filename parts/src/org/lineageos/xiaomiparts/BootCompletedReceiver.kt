@@ -16,6 +16,8 @@ import org.lineageos.xiaomiparts.utils.enableService
 import org.lineageos.xiaomiparts.utils.writeLine
 import org.lineageos.xiaomiparts.display.DcDimmingSettingsFragment.Companion.DC_DIMMING_ENABLE_KEY
 import org.lineageos.xiaomiparts.display.DcDimmingSettingsFragment.Companion.DC_DIMMING_NODE
+import org.lineageos.xiaomiparts.hbm.HBMConstants
+import org.lineageos.xiaomiparts.hbm.HBMManager
 
 class BootCompletedReceiver : BroadcastReceiver() {
 
@@ -38,6 +40,15 @@ class BootCompletedReceiver : BroadcastReceiver() {
         val sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context)
         val dcDimmingEnabled = sharedPrefs.getBoolean(DC_DIMMING_ENABLE_KEY, false)
         writeLine(DC_DIMMING_NODE, if (dcDimmingEnabled) "1" else "0")
+
+        // Restore HBM state (only if DC Dimming is off, due to mutual exclusion)
+        if (!dcDimmingEnabled) {
+            val hbmEnabled = sharedPrefs.getBoolean(HBMConstants.PREF_HBM_KEY, false)
+            if (hbmEnabled) {
+                Log.i(TAG, "Restoring HBM enabled state")
+                HBMManager.setHBMEnabled(context, true)
+            }
+        }
     }
 
     companion object {

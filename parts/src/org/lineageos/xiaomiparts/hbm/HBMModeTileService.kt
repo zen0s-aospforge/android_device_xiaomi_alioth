@@ -72,6 +72,28 @@ class HBMModeTileService : TileService() {
         }
         val newEnabledState = (newState == Tile.STATE_ACTIVE)
 
+        // Check if DC Dimming is enabled, and disable it if enabling HBM
+        val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+        val dcDimmingEnabled = prefs.getBoolean(
+            org.lineageos.xiaomiparts.display.DcDimmingSettingsFragment.DC_DIMMING_ENABLE_KEY, 
+            false
+        )
+        
+        if (newEnabledState && dcDimmingEnabled) {
+            dlog(TAG, "Disabling DC Dimming to enable HBM")
+            // Disable DC Dimming
+            prefs.edit().putBoolean(
+                org.lineageos.xiaomiparts.display.DcDimmingSettingsFragment.DC_DIMMING_ENABLE_KEY,
+                false
+            ).apply()
+            org.lineageos.xiaomiparts.utils.writeLine(
+                org.lineageos.xiaomiparts.display.DcDimmingSettingsFragment.DC_DIMMING_NODE,
+                "0"
+            )
+            // Update DC Dimming tile
+            org.lineageos.xiaomiparts.display.DcDimmingTileService.updateTile(this)
+        }
+
         // Update UI instantly for responsive feel
         updateUI(newEnabledState)
 
