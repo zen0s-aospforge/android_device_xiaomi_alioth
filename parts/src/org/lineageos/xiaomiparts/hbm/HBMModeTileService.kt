@@ -45,19 +45,27 @@ class HBMModeTileService : TileService(), HBMManager.HBMStateListener {
         
         Log.i(TAG, "Tile clicked: toggling HBM to $newEnabled")
         
+        // Update preference immediately for instant sync
+        val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+        prefs.edit().putBoolean(HBMManager.PREF_HBM_KEY, newEnabled).apply()
+        
+        // Update UI instantly based on preference
         updateTileUI(newEnabled)
         
+        // Execute operation in background (UI already updated)
         if (newEnabled) {
             HBMManager.enableHBM(applicationContext, HBMManager.HBMOwner.MANUAL) { success ->
                 if (!success) {
-                    Log.w(TAG, "Failed to enable HBM, reverting tile")
+                    Log.w(TAG, "Failed to enable HBM, reverting")
+                    prefs.edit().putBoolean(HBMManager.PREF_HBM_KEY, false).apply()
                     updateTileUI(false)
                 }
             }
         } else {
             HBMManager.disableHBM(applicationContext, HBMManager.HBMOwner.MANUAL) { success ->
                 if (!success) {
-                    Log.w(TAG, "Failed to disable HBM, reverting tile")
+                    Log.w(TAG, "Failed to disable HBM, reverting")
+                    prefs.edit().putBoolean(HBMManager.PREF_HBM_KEY, true).apply()
                     updateTileUI(true)
                 }
             }
