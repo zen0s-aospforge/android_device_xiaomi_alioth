@@ -9,3 +9,7 @@ allow init adsprpcd_file:file mounton;
 
 # Charge bypass - input_suspend node
 allow init vendor_sysfs_battery_supply:file rw_file_perms;
+
+#Lunaris
+allow init proc_vm_dirty:file rw_file_perms;
+allow init proc_dirty_ratio:file rw_file_perms;
