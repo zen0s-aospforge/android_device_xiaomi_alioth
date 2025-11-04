@@ -334,7 +334,7 @@ PRODUCT_PACKAGES += \
     NfcOverlayAlioth \
     SecureElementOverlayAlioth \
     SettingsOverlayAlioth \
-    SettingsProviderOverlayAlioth \
+    SettingsProviderOverlayAliothMi11X \
     SystemUIOverlayAlioth \
     TelephonyOverlayAlioth \
     WifiOverlayAlioth
@@ -403,9 +403,6 @@ PRODUCT_PACKAGES += \
     android.hardware.sensors@1.0-impl-xiaomi \
     android.hardware.sensors@1.0-service
 
-PRODUCT_PACKAGES += \
-    SensorService
-
 # Soong namespaces
 PRODUCT_SOONG_NAMESPACES += \
     $(LOCAL_PATH) \
@@ -464,7 +461,6 @@ PRODUCT_PACKAGES += \
     libwifi-hal-ctrl \
     libwifi-hal-qcom \
     NcmTetheringOverlay \
-    WifiResCommon \
     wpa_supplicant \
     wpa_supplicant.conf
 
