@@ -10,6 +10,9 @@ import androidx.preference.PreferenceManager
 class HBMModeTileService : TileService(), HBMManager.HBMStateListener {
 
     private val TAG = "HBMTileService"
+    
+    @Volatile
+    private var isOperationInProgress = false
 
     override fun onCreate() {
         super.onCreate()
@@ -40,10 +43,18 @@ class HBMModeTileService : TileService(), HBMManager.HBMStateListener {
     override fun onClick() {
         super.onClick()
         
+        // Prevent multiple simultaneous operations
+        if (isOperationInProgress) {
+            Log.w(TAG, "Operation already in progress, ignoring rapid click")
+            return
+        }
+        
         val currentState = qsTile.state
         val newEnabled = currentState != Tile.STATE_ACTIVE
         
         Log.i(TAG, "Tile clicked: toggling HBM to $newEnabled")
+        
+        isOperationInProgress = true
         
         // Update preference immediately for instant sync
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)
@@ -55,6 +66,7 @@ class HBMModeTileService : TileService(), HBMManager.HBMStateListener {
         // Execute operation in background (UI already updated)
         if (newEnabled) {
             HBMManager.enableHBM(applicationContext, HBMManager.HBMOwner.MANUAL) { success ->
+                isOperationInProgress = false
                 if (!success) {
                     Log.w(TAG, "Failed to enable HBM, reverting")
                     prefs.edit().putBoolean(HBMManager.PREF_HBM_KEY, false).apply()
@@ -63,6 +75,7 @@ class HBMModeTileService : TileService(), HBMManager.HBMStateListener {
             }
         } else {
             HBMManager.disableHBM(applicationContext, HBMManager.HBMOwner.MANUAL) { success ->
+                isOperationInProgress = false
                 if (!success) {
                     Log.w(TAG, "Failed to disable HBM, reverting")
                     prefs.edit().putBoolean(HBMManager.PREF_HBM_KEY, true).apply()
