@@ -20,8 +20,8 @@
                 <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
-        
-         <!-- HBM Boot Receiver - dedicated HBM initialization -->
+
+        <!-- HBM Boot Receiver - dedicated HBM initialization -->
         <receiver
             android:name=".hbm.HBMBootReceiver"
             android:exported="false"
@@ -53,8 +53,7 @@
 
         <service
             android:name=".thermal.ThermalService"
-            android:permission="ThermalService">
-        </service>
+            android:permission="ThermalService" />
 
         <service
             android:name=".display.DcDimmingTileService"
@@ -63,7 +62,7 @@
             android:label="@string/dc_dimming_enable_title"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>
-                <action android:name="android.service.quicksettings.action.QS_TILE"/>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
             </intent-filter>
         </service>
 
@@ -116,6 +115,22 @@
                 <action android:name="android.service.quicksettings.action.QS_TILE" />
             </intent-filter>
         </service>
+
+        <activity
+            android:name=".charge.ChargeActivity"
+            android:label="@string/charge_bypass_title"
+            android:exported="true"
+            android:theme="@style/Theme.SubSettingsBase">
+            <intent-filter>
+                <action android:name="com.android.settings.action.IA_SETTINGS" />
+            </intent-filter>
+            <meta-data
+                android:name="com.android.settings.category"
+                android:value="com.android.settings.category.ia.battery" />
+            <meta-data
+                android:name="com.android.settings.summary"
+                android:resource="@string/charge_bypass_summary" />
+        </activity>
 
     </application>
 </manifest>
