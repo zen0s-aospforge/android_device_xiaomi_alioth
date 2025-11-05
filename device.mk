@@ -203,6 +203,9 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PACKAGES += \
     XiaomiParts
 
+# GameBar Performance Overlay
+$(call inherit-product, packages/apps/GameBar/gamebar.mk)
+
 # Display
 PRODUCT_PACKAGES += \
     vendor.qti.hardware.display.composer-service
