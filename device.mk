@@ -340,7 +340,9 @@ PRODUCT_PACKAGES += \
     NfcOverlayAlioth \
     SecureElementOverlayAlioth \
     SettingsOverlayAlioth \
-    SettingsProviderOverlayAlioth \
+    SettingsProviderOverlayAliothPOCO \
+    SettingsProviderOverlayAliothRedmi \
+    SettingsProviderOverlayAliothMi11X \
     SystemUIOverlayAlioth \
     TelephonyOverlayAlioth \
     WifiOverlayAlioth
