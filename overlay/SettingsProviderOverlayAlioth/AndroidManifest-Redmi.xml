@@ -6,7 +6,7 @@
     package="com.android.settingsproviders.Alioth.redmi">
     <overlay android:targetPackage="com.android.providers.settings"
                    android:isStatic="true"
-                   android:priority="851"
+                   android:priority="800"
                    android:requiredSystemPropertyName="ro.boot.hwc"
                    android:requiredSystemPropertyValue="CN"/>
 </manifest>
