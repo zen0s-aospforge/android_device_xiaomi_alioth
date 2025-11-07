@@ -49,6 +49,11 @@ AXION_CAMERA_FRONT_INFO := 20
 
 TARGET_NEEDS_DOZE_FIX := true
 
+
+# High Brightness Mode (HBM)
+HBM_SUPPORTED := true
+HBM_NODE := /sys/class/drm/card0/card0-DSI-1/disp_param
+
 #ViperFX
 TARGET_INCLUDE_VIPERFX := true
 
