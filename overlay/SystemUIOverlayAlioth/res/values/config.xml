@@ -80,4 +80,7 @@
     <!-- Maximum vertical offset of navigation bar for burn-in protection -->
     <dimen name="navigation_bar_burn_in_offset_max_y">3dp</dimen>
 
+    <!-- Disable turbulence noise -->
+    <bool name="config_turbulenceNoise" translatable="false">false</bool>
+
 </resources>
