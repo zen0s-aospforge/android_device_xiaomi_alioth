@@ -9,3 +9,6 @@ ro.product.mod_device                                                           
 
 # Vendor init
 ro.product.marketname                                                                               u:object_r:build_prop:s0
+
+# ReVanced
+persist.sys.revan.mod u:object_r:revanced_prop:s0
