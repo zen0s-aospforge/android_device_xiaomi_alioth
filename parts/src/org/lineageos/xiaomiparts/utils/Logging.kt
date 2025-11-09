@@ -40,6 +40,5 @@ object Logging {
         Log.e("$MAIN_TAG-$tag", msg, tr)
     }
     
-    // Legacy alias for backward compatibility
     fun log(tag: String, msg: String) = d(tag, msg)
 }
