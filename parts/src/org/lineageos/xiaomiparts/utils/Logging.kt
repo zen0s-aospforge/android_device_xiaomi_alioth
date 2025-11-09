@@ -14,3 +14,9 @@ fun dlog(tag: String, msg: String) {
         Log.d("$MAIN_TAG-$tag", msg)
     }
 }
+
+object Logging {
+    fun log(tag: String, msg: String) {
+        Log.d("$MAIN_TAG-$tag", msg)
+    }
+}
