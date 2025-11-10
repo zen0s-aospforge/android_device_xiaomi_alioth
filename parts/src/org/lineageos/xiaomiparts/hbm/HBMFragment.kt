@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.os.UserHandle
-import android.util.Log
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragment
 import androidx.preference.PreferenceManager
@@ -13,16 +12,17 @@ import org.lineageos.xiaomiparts.R
 import org.lineageos.xiaomiparts.display.DcDimmingSettingsFragment.Companion.DC_DIMMING_ENABLE_KEY
 import org.lineageos.xiaomiparts.display.DcDimmingTileService
 import org.lineageos.xiaomiparts.utils.writeLine
+import org.lineageos.xiaomiparts.utils.Logging
 
 class HBMFragment : PreferenceFragment() {
 
-    private val TAG = "HBMFragment"
+    private val TAG = "HBMFrag"
 
     private var hbmPreference: TwoStatePreference? = null
     private var autoHBMPreference: TwoStatePreference? = null
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
-        Log.i(TAG, "Creating HBM preferences")
+        Logging.i(TAG, "Creating HBM preferences")
         addPreferencesFromResource(R.xml.hbm_settings)
 
         val prefs = PreferenceManager.getDefaultSharedPreferences(activity)
@@ -30,7 +30,7 @@ class HBMFragment : PreferenceFragment() {
         hbmPreference = findPreference<TwoStatePreference>(HBMManager.PREF_HBM_KEY)?.apply {
             onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
                 val enabled = newValue as? Boolean ?: false
-                Log.i(TAG, "Manual HBM preference changed: $enabled")
+                Logging.i(TAG, "Manual HBM preference changed: $enabled")
                 
                 handleHBMToggle(enabled)
             }
@@ -41,7 +41,7 @@ class HBMFragment : PreferenceFragment() {
             
             onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
                 val enabled = newValue as? Boolean ?: false
-                Log.i(TAG, "Auto HBM preference changed: $enabled")
+                Logging.i(TAG, "Auto HBM preference changed: $enabled")
                 
                 prefs.edit().putBoolean(HBMManager.PREF_AUTO_HBM_KEY, enabled).apply()
                 
@@ -59,7 +59,7 @@ class HBMFragment : PreferenceFragment() {
             val dcDimmingEnabled = prefs.getBoolean(DC_DIMMING_ENABLE_KEY, false)
             
             if (dcDimmingEnabled) {
-                Log.i(TAG, "Disabling DC Dimming to enable HBM")
+                Logging.i(TAG, "Disabling DC Dimming to enable HBM")
                 
                 prefs.edit().putBoolean(DC_DIMMING_ENABLE_KEY, false).apply()
                 writeLine(
@@ -76,7 +76,7 @@ class HBMFragment : PreferenceFragment() {
             HBMManager.enableHBM(activity, HBMManager.HBMOwner.MANUAL) { success ->
                 result = success
                 if (!success) {
-                    Log.w(TAG, "Failed to enable HBM, reverting preference")
+                    Logging.w(TAG, "Failed to enable HBM, reverting preference")
                     activity?.runOnUiThread {
                         hbmPreference?.isChecked = false
                     }
@@ -86,7 +86,7 @@ class HBMFragment : PreferenceFragment() {
             HBMManager.disableHBM(activity, HBMManager.HBMOwner.MANUAL) { success ->
                 result = success
                 if (!success) {
-                    Log.w(TAG, "Failed to disable HBM, reverting preference")
+                    Logging.w(TAG, "Failed to disable HBM, reverting preference")
                     activity?.runOnUiThread {
                         hbmPreference?.isChecked = true
                     }
@@ -101,10 +101,10 @@ class HBMFragment : PreferenceFragment() {
         val intent = Intent(activity, AutoHBMService::class.java)
         
         if (enable) {
-            Log.i(TAG, "Starting AutoHBMService")
+            Logging.i(TAG, "Starting AutoHBMService")
             activity.startServiceAsUser(intent, UserHandle.CURRENT)
         } else {
-            Log.i(TAG, "Stopping AutoHBMService")
+            Logging.i(TAG, "Stopping AutoHBMService")
             activity.stopServiceAsUser(intent, UserHandle.CURRENT)
         }
     }
