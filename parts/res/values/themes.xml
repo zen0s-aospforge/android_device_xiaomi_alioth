@@ -16,13 +16,8 @@
   -->
 
 <resources>
-
-    <style name="PreferenceTheme.SettingsLib.Thermal">
-        <item name="android:layout">@layout/thermal_layout</item>
+    <style name="Theme.SubSettingsBase.NoActionBar" parent="Theme.SubSettingsBase">
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>
     </style>
-
-    <style name="Theme.SubSettingsBase.Thermal">
-        <item name="preferenceTheme">@style/PreferenceTheme.SettingsLib.Thermal</item>
-    </style>
-
 </resources>
