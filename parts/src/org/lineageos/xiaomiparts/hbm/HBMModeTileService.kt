@@ -4,31 +4,31 @@ import android.content.ComponentName
 import android.content.Context
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
-import android.util.Log
 import androidx.preference.PreferenceManager
+import org.lineageos.xiaomiparts.utils.Logging
 
 class HBMModeTileService : TileService(), HBMManager.HBMStateListener {
 
-    private val TAG = "HBMTileService"
+    private val TAG = "HBMTile"
     
     @Volatile
     private var isOperationInProgress = false
 
     override fun onCreate() {
         super.onCreate()
-        Log.i(TAG, "Tile created")
+        Logging.i(TAG, "Tile created")
         HBMManager.addListener(this)
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        Log.i(TAG, "Tile destroyed")
+        Logging.i(TAG, "Tile destroyed")
         HBMManager.removeListener(this)
     }
 
     override fun onStartListening() {
         super.onStartListening()
-        Log.i(TAG, "Tile listening")
+        Logging.i(TAG, "Tile listening")
         
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)
         val enabled = prefs.getBoolean(HBMManager.PREF_HBM_KEY, false)
@@ -37,7 +37,7 @@ class HBMModeTileService : TileService(), HBMManager.HBMStateListener {
 
     override fun onStopListening() {
         super.onStopListening()
-        Log.i(TAG, "Tile stopped listening")
+        Logging.i(TAG, "Tile stopped listening")
     }
 
     override fun onClick() {
@@ -45,14 +45,14 @@ class HBMModeTileService : TileService(), HBMManager.HBMStateListener {
         
         // Prevent multiple simultaneous operations
         if (isOperationInProgress) {
-            Log.w(TAG, "Operation already in progress, ignoring rapid click")
+            Logging.w(TAG, "Operation already in progress, ignoring rapid click")
             return
         }
         
         val currentState = qsTile.state
         val newEnabled = currentState != Tile.STATE_ACTIVE
         
-        Log.i(TAG, "Tile clicked: toggling HBM to $newEnabled")
+        Logging.i(TAG, "Tile clicked: toggling HBM to $newEnabled")
         
         isOperationInProgress = true
         
@@ -68,7 +68,7 @@ class HBMModeTileService : TileService(), HBMManager.HBMStateListener {
             HBMManager.enableHBM(applicationContext, HBMManager.HBMOwner.MANUAL) { success ->
                 isOperationInProgress = false
                 if (!success) {
-                    Log.w(TAG, "Failed to enable HBM, reverting")
+                    Logging.w(TAG, "Failed to enable HBM, reverting")
                     prefs.edit().putBoolean(HBMManager.PREF_HBM_KEY, false).apply()
                     updateTileUI(false)
                 }
@@ -77,7 +77,7 @@ class HBMModeTileService : TileService(), HBMManager.HBMStateListener {
             HBMManager.disableHBM(applicationContext, HBMManager.HBMOwner.MANUAL) { success ->
                 isOperationInProgress = false
                 if (!success) {
-                    Log.w(TAG, "Failed to disable HBM, reverting")
+                    Logging.w(TAG, "Failed to disable HBM, reverting")
                     prefs.edit().putBoolean(HBMManager.PREF_HBM_KEY, true).apply()
                     updateTileUI(true)
                 }
@@ -86,7 +86,7 @@ class HBMModeTileService : TileService(), HBMManager.HBMStateListener {
     }
 
     override fun onHBMStateChanged(enabled: Boolean, owner: HBMManager.HBMOwner) {
-        Log.i(TAG, "HBM state changed: enabled=$enabled, owner=$owner")
+        Logging.i(TAG, "HBM state changed: enabled=$enabled, owner=$owner")
         updateTileUI(enabled)
     }
 
@@ -106,7 +106,7 @@ class HBMModeTileService : TileService(), HBMManager.HBMStateListener {
                     ComponentName(context, HBMModeTileService::class.java)
                 )
             } catch (e: Exception) {
-                Log.e("HBMTileService", "Failed to request tile update", e)
+                Logging.e("HBMTile", "Failed to request tile update", e)
             }
         }
     }
