@@ -103,6 +103,9 @@ class ThermalSettingsFragment : PreferenceFragment() {
                 addOnSwitchChangeListener { _, isChecked ->
                     thermalUtils.enabled = isChecked
                     updateRvVisibility()
+                    if (isChecked && !isLoaded) {
+                        loadApps()
+                    }
                 }
             }
     }
@@ -137,7 +140,9 @@ class ThermalSettingsFragment : PreferenceFragment() {
             }
         loadingView = view.findViewById(R.id.thermal_loading)!!
         updateRvVisibility()
-        loadApps()
+        if (thermalUtils.enabled) {
+            loadApps()
+        }
     }
 
     override fun onDestroy() {
