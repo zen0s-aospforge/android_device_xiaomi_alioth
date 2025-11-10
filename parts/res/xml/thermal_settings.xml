@@ -12,4 +12,8 @@
         android:key="thermal_enable"
         android:title="@string/thermal_enable" />
 
+    <PreferenceCategory
+        android:key="thermal_apps_category"
+        android:title="@string/thermal_apps_title" />
+
 </PreferenceScreen>
