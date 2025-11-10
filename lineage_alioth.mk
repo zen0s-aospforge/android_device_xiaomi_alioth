@@ -54,9 +54,6 @@ TARGET_NEEDS_DOZE_FIX := true
 HBM_SUPPORTED := true
 HBM_NODE := /sys/class/drm/card0/card0-DSI-1/disp_param
 
-#ViperFX
-TARGET_INCLUDE_VIPERFX := true
-
 #cpu
 AXION_CPU_SMALL_CORES := 0,1,2,3
 AXION_CPU_BIG_CORES := 4,5,6,7
