@@ -5,16 +5,16 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
 import android.provider.Settings
-import android.util.Log
 import androidx.preference.PreferenceManager
 import org.lineageos.xiaomiparts.display.DcDimmingSettingsFragment.Companion.DC_DIMMING_ENABLE_KEY
 import org.lineageos.xiaomiparts.utils.getFileValueAsBoolean
 import org.lineageos.xiaomiparts.utils.writeLine
+import org.lineageos.xiaomiparts.utils.Logging
 import java.util.concurrent.CopyOnWriteArraySet
 
 object HBMManager {
 
-    private const val TAG = "HBMManager"
+    private const val TAG = "HBMMgr"
     
     private const val HBM_SYSFS_PATH = "/sys/class/drm/card0/card0-DSI-1/disp_param"
     private const val BACKLIGHT_SYSFS_PATH = "/sys/class/backlight/panel0-backlight/brightness"
@@ -59,22 +59,22 @@ object HBMManager {
     }
     
     private fun enableHBMInternal(context: Context, owner: HBMOwner): Boolean {
-            Log.i(TAG, "enableHBM: owner=$owner, currentOwner=$currentOwner")
+            Logging.i(TAG, "enableHBM: owner=$owner, currentOwner=$currentOwner")
             
             val prefs = PreferenceManager.getDefaultSharedPreferences(context)
             if (prefs.getBoolean(DC_DIMMING_ENABLE_KEY, false)) {
-                Log.w(TAG, "Cannot enable HBM: DC Dimming is active")
+                Logging.w(TAG, "Cannot enable HBM: DC Dimming is active")
                 return false
             }
             
             if (currentOwner == HBMOwner.MANUAL && owner == HBMOwner.AUTO_SERVICE) {
-                Log.i(TAG, "HBM already enabled manually, ignoring auto-enable request")
+                Logging.i(TAG, "HBM already enabled manually, ignoring auto-enable request")
                 return false
             }
             
             val hardwareEnabled = getFileValueAsBoolean(HBM_SYSFS_PATH, false)
             if (hardwareEnabled && currentOwner == owner) {
-                Log.i(TAG, "HBM already enabled by same owner, skipping")
+                Logging.i(TAG, "HBM already enabled by same owner, skipping")
                 return true
             }
             
@@ -85,7 +85,7 @@ object HBMManager {
                     Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL
                 )
                 savedBrightnessMode = currentMode
-                Log.i(TAG, "Saved brightness mode: $currentMode")
+                Logging.i(TAG, "Saved brightness mode: $currentMode")
                 
                 // Save current brightness value
                 val currentBrightness = Settings.System.getInt(
@@ -94,11 +94,11 @@ object HBMManager {
                     128
                 )
                 savedBrightnessValue = currentBrightness
-                Log.i(TAG, "Saved brightness value: $currentBrightness")
+                Logging.i(TAG, "Saved brightness value: $currentBrightness")
             }
             
             if (!writeLine(HBM_SYSFS_PATH, "0x10000")) {
-                Log.e(TAG, "Failed to write to HBM sysfs")
+                Logging.e(TAG, "Failed to write to HBM sysfs")
                 return false
             }
             
@@ -117,7 +117,7 @@ object HBMManager {
             currentOwner = owner
             prefs.edit().putBoolean(PREF_HBM_KEY, true).apply()
             
-            Log.i(TAG, "HBM enabled successfully by $owner")
+            Logging.i(TAG, "HBM enabled successfully by $owner")
             notifyListeners(true, owner)
             return true
     }
@@ -130,20 +130,20 @@ object HBMManager {
     }
     
     private fun disableHBMInternal(context: Context, owner: HBMOwner): Boolean {
-            Log.i(TAG, "disableHBM: owner=$owner, currentOwner=$currentOwner")
+            Logging.i(TAG, "disableHBM: owner=$owner, currentOwner=$currentOwner")
             
             if (currentOwner == HBMOwner.NONE) {
-                Log.i(TAG, "HBM already disabled, skipping")
+                Logging.i(TAG, "HBM already disabled, skipping")
                 return true
             }
             
             if (owner == HBMOwner.AUTO_SERVICE && currentOwner == HBMOwner.MANUAL) {
-                Log.i(TAG, "Cannot disable manually-enabled HBM from auto service")
+                Logging.i(TAG, "Cannot disable manually-enabled HBM from auto service")
                 return false
             }
             
             if (!writeLine(HBM_SYSFS_PATH, "0xF0000")) {
-                Log.e(TAG, "Failed to write to HBM sysfs")
+                Logging.e(TAG, "Failed to write to HBM sysfs")
                 return false
             }
             
@@ -157,14 +157,14 @@ object HBMManager {
             // Restore brightness mode
             if (currentSystemMode == Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL) {
                 val modeToRestore = savedBrightnessMode ?: Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC
-                Log.i(TAG, "Restoring brightness mode: $modeToRestore")
+                Logging.i(TAG, "Restoring brightness mode: $modeToRestore")
                 Settings.System.putInt(
                     resolver,
                     Settings.System.SCREEN_BRIGHTNESS_MODE,
                     modeToRestore
                 )
             } else {
-                Log.i(TAG, "User changed brightness mode to $currentSystemMode, keeping it")
+                Logging.i(TAG, "User changed brightness mode to $currentSystemMode, keeping it")
             }
             
             // Restore brightness value if in MANUAL mode
@@ -175,7 +175,7 @@ object HBMManager {
             )
             
             if (restoredMode == Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL && savedBrightnessValue != null) {
-                Log.i(TAG, "Restoring brightness value: $savedBrightnessValue")
+                Logging.i(TAG, "Restoring brightness value: $savedBrightnessValue")
                 Settings.System.putInt(
                     resolver,
                     Settings.System.SCREEN_BRIGHTNESS,
@@ -191,7 +191,7 @@ object HBMManager {
             val prefs = PreferenceManager.getDefaultSharedPreferences(context)
             prefs.edit().putBoolean(PREF_HBM_KEY, false).apply()
             
-            Log.i(TAG, "HBM disabled successfully by $owner")
+            Logging.i(TAG, "HBM disabled successfully by $owner")
             notifyListeners(false, HBMOwner.NONE)
             return true
     }
@@ -222,7 +222,7 @@ object HBMManager {
                 try {
                     listener.onHBMStateChanged(enabled, owner)
                 } catch (e: Exception) {
-                    Log.e(TAG, "Error notifying listener", e)
+                    Logging.e(TAG, "Error notifying listener", e)
                 }
             }
         }
@@ -230,7 +230,7 @@ object HBMManager {
     
     fun initializeOnBoot(context: Context) {
         workerHandler.post {
-            Log.i(TAG, "Initializing HBM state on boot")
+            Logging.i(TAG, "Initializing HBM state on boot")
             
             val prefs = PreferenceManager.getDefaultSharedPreferences(context)
             val shouldBeEnabled = prefs.getBoolean(PREF_HBM_KEY, false)
@@ -238,11 +238,11 @@ object HBMManager {
             
             if (shouldBeEnabled && !hardwareEnabled) {
                 if (!prefs.getBoolean(DC_DIMMING_ENABLE_KEY, false)) {
-                    Log.i(TAG, "Restoring manually-enabled HBM on boot")
+                    Logging.i(TAG, "Restoring manually-enabled HBM on boot")
                     enableHBMInternal(context, HBMOwner.MANUAL)
                 }
             } else if (!shouldBeEnabled && hardwareEnabled) {
-                Log.i(TAG, "Disabling HBM on boot (preference is false)")
+                Logging.i(TAG, "Disabling HBM on boot (preference is false)")
                 disableHBMInternal(context, HBMOwner.MANUAL)
             }
         }

@@ -9,20 +9,20 @@ package org.lineageos.xiaomiparts
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import androidx.preference.PreferenceManager
 import org.lineageos.xiaomiparts.thermal.ThermalUtils
 import org.lineageos.xiaomiparts.utils.writeLine
+import org.lineageos.xiaomiparts.utils.Logging
 import org.lineageos.xiaomiparts.display.DcDimmingSettingsFragment.Companion.DC_DIMMING_ENABLE_KEY
 import org.lineageos.xiaomiparts.display.DcDimmingSettingsFragment.Companion.DC_DIMMING_NODE
 
 class BootCompletedReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
-        Log.d(TAG, "Received intent: ${intent.action}")
+        Logging.d(TAG, "Received intent: ${intent.action}")
         if (intent.action != Intent.ACTION_LOCKED_BOOT_COMPLETED) return
 
-        Log.i(TAG, "Boot completed, restoring DC and Thermal...")
+        Logging.i(TAG, "Boot completed, restoring DC and Thermal...")
 
         val thermalUtils = ThermalUtils.getInstance(context)
         if (thermalUtils.enabled) {
@@ -38,6 +38,6 @@ class BootCompletedReceiver : BroadcastReceiver() {
     }
 
     companion object {
-        private const val TAG = "XiaomiParts-BCR"
+        private const val TAG = "Boot"
     }
 }

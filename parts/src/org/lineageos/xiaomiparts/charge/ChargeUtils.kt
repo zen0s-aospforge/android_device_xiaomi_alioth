@@ -18,10 +18,10 @@ package org.lineageos.xiaomiparts.charge
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.util.Log
 import androidx.preference.PreferenceManager
 import org.lineageos.xiaomiparts.utils.readOneLine
 import org.lineageos.xiaomiparts.utils.writeLine
+import org.lineageos.xiaomiparts.utils.Logging
 
 class ChargeUtils(context: Context) {
 
@@ -32,7 +32,7 @@ class ChargeUtils(context: Context) {
             val value = readOneLine(BYPASS_CHARGE_NODE)
             value == "1"
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to read bypass charge status", e)
+            Logging.e(TAG, "Failed to read bypass charge status", e)
             false
         }
     }
@@ -42,7 +42,7 @@ class ChargeUtils(context: Context) {
             writeLine(BYPASS_CHARGE_NODE, if (enable) "1" else "0")
             sharedPrefs.edit().putBoolean(PREF_BYPASS_CHARGE, enable).apply()
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to write bypass charge status", e)
+            Logging.e(TAG, "Failed to write bypass charge status", e)
         }
     }
 
@@ -51,7 +51,7 @@ class ChargeUtils(context: Context) {
             readOneLine(node)
             true
         } catch (e: Exception) {
-            Log.e(TAG, "Node $node not accessible", e)
+            Logging.e(TAG, "Node $node not accessible", e)
             false
         }
     }
@@ -61,7 +61,7 @@ class ChargeUtils(context: Context) {
     }
 
     companion object {
-        private const val TAG = "ChargeUtils"
+        private const val TAG = "Charge"
         const val BYPASS_CHARGE_NODE = "/sys/class/power_supply/battery/input_suspend"
         private const val PREF_BYPASS_CHARGE = "bypass_charge"
 
