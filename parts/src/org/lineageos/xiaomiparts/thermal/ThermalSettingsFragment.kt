@@ -6,7 +6,6 @@
 
 package org.lineageos.xiaomiparts.thermal
 
-import android.app.Activity
 import android.content.Context
 import android.content.pm.LauncherActivityInfo
 import android.content.pm.LauncherApps
@@ -16,37 +15,19 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.os.Process
 import android.os.UserHandle
-import android.util.TypedValue
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.AdapterView
-import android.widget.BaseAdapter
-import android.widget.ImageView
-import android.widget.Spinner
-import android.widget.TextView
-import androidx.core.view.isVisible
+import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragment
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import org.lineageos.xiaomiparts.R
 import org.lineageos.xiaomiparts.thermal.ThermalUtils.ThermalState
 import org.lineageos.xiaomiparts.utils.dlog
 import com.android.settingslib.widget.MainSwitchPreference
 
-/**
- * Thermal profile settings fragment. Shows list of all launchable apps with a drop-down spinner to
- * select their thermal profile.
- */
 class ThermalSettingsFragment : PreferenceFragment() {
 
-    private lateinit var appsAdapter: AppsAdapter
     private lateinit var launcherApps: LauncherApps
     private lateinit var thermalUtils: ThermalUtils
-    private lateinit var appsRecyclerView: RecyclerView
     private lateinit var mainSwitch: MainSwitchPreference
-    private lateinit var loadingView: View
-    private var isLoaded = false
+    private lateinit var appsCategory: PreferenceCategory
     private val handlerThread = HandlerThread(TAG).apply { start() }
     private val bgHandler = Handler(handlerThread.looper)
 
@@ -54,12 +35,11 @@ class ThermalSettingsFragment : PreferenceFragment() {
         object : LauncherApps.Callback() {
             override fun onPackageRemoved(packageName: String, user: UserHandle) {
                 if (user != Process.myUserHandle()) return
-                appsAdapter.run {
-                    val pos = entries.indexOfFirst { it.packageName == packageName }
-                    if (pos != -1) {
+                val prefToRemove = appsCategory.findPreference<AppThermalPreference>(packageName)
+                if (prefToRemove != null) {
+                    activity?.runOnUiThread {
                         dlog(TAG, "onPackageRemoved: $packageName")
-                        entries.removeAt(pos)
-                        notifyItemRemovedOnUiThread(pos)
+                        appsCategory.removePreference(prefToRemove)
                     }
                 }
             }
@@ -68,13 +48,33 @@ class ThermalSettingsFragment : PreferenceFragment() {
                 if (user != Process.myUserHandle()) return
                 val info = launcherApps.getActivityList(packageName, user).firstOrNull() ?: return
                 val entry = info.toAppEntry()
-                appsAdapter.run {
-                    if (entries.any { it.packageName == packageName }) return
-                    val index = entries.binarySearchBy(entry.label) { it.label }
-                    val pos = if (index < 0) -(index + 1) else index
-                    entries.add(pos, entry)
+                if (appsCategory.findPreference<AppThermalPreference>(packageName) != null) return
+                
+                activity?.runOnUiThread {
+                    var insertIndex = 0
+                    for (i in 0 until appsCategory.preferenceCount) {
+                        val pref = appsCategory.getPreference(i)
+                        if (pref is AppThermalPreference) {
+                            if ((pref.title?.toString() ?: "").compareTo(entry.label, ignoreCase = true) > 0) {
+                                break
+                            }
+                        }
+                        insertIndex = i + 1
+                    }
+                    
+                    val pref = AppThermalPreference(preferenceScreen.context).apply {
+                        key = entry.packageName
+                        title = entry.label
+                        appIcon = entry.icon
+                        state = entry.state
+                        isPersistent = false
+                        onStateChanged = { newState ->
+                            thermalUtils.writePackage(entry.packageName, newState)
+                        }
+                    }
                     dlog(TAG, "onPackageAdded: $packageName")
-                    notifyItemInsertedOnUiThread(pos)
+                    appsCategory.addPreference(pref)
+                    appsCategory.setOrder(insertIndex)
                 }
             }
 
@@ -97,12 +97,16 @@ class ThermalSettingsFragment : PreferenceFragment() {
         addPreferencesFromResource(R.xml.thermal_settings)
 
         thermalUtils = ThermalUtils.getInstance(activity)
+        appsCategory = findPreference<PreferenceCategory>("thermal_apps_category")!!
         mainSwitch =
             findPreference<MainSwitchPreference>(THERMAL_ENABLE_KEY)!!.apply {
                 isChecked = thermalUtils.enabled
                 addOnSwitchChangeListener { _, isChecked ->
                     thermalUtils.enabled = isChecked
-                    updateRvVisibility()
+                    updateAppListVisibility(isChecked)
+                    if (isChecked && appsCategory.preferenceCount == 0) {
+                        loadApps()
+                    }
                 }
             }
     }
@@ -110,34 +114,14 @@ class ThermalSettingsFragment : PreferenceFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         launcherApps = activity.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
-        appsAdapter = AppsAdapter(activity)
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        val preferenceView = super.onCreateView(inflater, container, savedInstanceState)
-        val rootView = inflater.inflate(R.layout.thermal_layout, container, false)
-        
-        // Add the preference list into the list_container
-        val listContainer = rootView.findViewById<ViewGroup>(android.R.id.list_container)
-        listContainer?.addView(preferenceView)
-        
-        return rootView
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        appsRecyclerView =
-            view.findViewById<RecyclerView>(R.id.thermal_rv_view)!!.apply {
-                layoutManager = LinearLayoutManager(activity)
-                adapter = appsAdapter
-            }
-        loadingView = view.findViewById(R.id.thermal_loading)!!
-        updateRvVisibility()
-        loadApps()
+    override fun onStart() {
+        super.onStart()
+        updateAppListVisibility(thermalUtils.enabled)
+        if (thermalUtils.enabled && appsCategory.preferenceCount == 0) {
+            loadApps()
+        }
     }
 
     override fun onDestroy() {
@@ -147,15 +131,9 @@ class ThermalSettingsFragment : PreferenceFragment() {
         launcherApps.unregisterCallback(launcherAppsCallback)
     }
 
-    private fun updateRvVisibility() {
+    private fun updateAppListVisibility(visible: Boolean) {
         activity?.runOnUiThread {
-            if (thermalUtils.enabled) {
-                appsRecyclerView.isVisible = isLoaded
-                loadingView.isVisible = !isLoaded
-            } else {
-                appsRecyclerView.isVisible = false
-                loadingView.isVisible = false
-            }
+            appsCategory.isVisible = visible
         }
     }
 
@@ -164,17 +142,28 @@ class ThermalSettingsFragment : PreferenceFragment() {
             val appEntries =
                 launcherApps
                     .getActivityList(null, Process.myUserHandle())
-                    .distinctBy { it.componentName.packageName } // Filter out duplicates
+                    .distinctBy { it.componentName.packageName }
                     .map { it.toAppEntry() }
-                    .sortedBy { it.label.toString().lowercase() } // Sort case-insensitively
+                    .sortedBy { it.label.toString().lowercase() }
             dlog(TAG, "loaded ${appEntries.size} apps")
-            appsAdapter.run {
-                entries.clear()
-                entries.addAll(appEntries)
-                notifyDataSetChangedOnUiThread()
+            
+            activity?.runOnUiThread {
+                appsCategory.removeAll()
+                appEntries.forEach { entry ->
+                    val pref = AppThermalPreference(preferenceScreen.context).apply {
+                        key = entry.packageName
+                        title = entry.label
+                        appIcon = entry.icon
+                        state = entry.state
+                        isPersistent = false
+                        onStateChanged = { newState ->
+                            thermalUtils.writePackage(entry.packageName, newState)
+                        }
+                    }
+                    appsCategory.addPreference(pref)
+                }
             }
-            isLoaded = true
-            updateRvVisibility()
+            
             launcherApps.registerCallback(launcherAppsCallback, bgHandler)
         }
     }
@@ -193,97 +182,6 @@ class ThermalSettingsFragment : PreferenceFragment() {
         val icon: Drawable,
         val state: ThermalState,
     )
-
-    private inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val title: TextView = view.findViewById(R.id.app_name)!!
-        val mode: Spinner = view.findViewById(R.id.app_mode)!!
-        val icon: ImageView = view.findViewById(R.id.app_icon)!!
-
-        init {
-            view.tag = this
-        }
-    }
-
-    private inner class ModeAdapter(context: Context) : BaseAdapter() {
-        private val inflater = LayoutInflater.from(context)
-        private val items = ThermalState.values().map { it.label }
-
-        override fun getCount() = items.size
-
-        override fun getItem(position: Int) = items[position]
-
-        override fun getItemId(position: Int) = 0L
-
-        override fun getView(position: Int, convertView: View?, parent: ViewGroup): View =
-            (convertView as? TextView
-                    ?: inflater.inflate(
-                        android.R.layout.simple_spinner_dropdown_item,
-                        parent,
-                        false
-                    ) as TextView)
-                .apply {
-                    setText(items[position])
-                    setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
-                }
-    }
-
-    private inner class AppsAdapter(private val activity: Activity) :
-        RecyclerView.Adapter<ViewHolder>(), AdapterView.OnItemSelectedListener {
-
-        var entries = mutableListOf<AppEntry>()
-        private var positions: IntArray = intArrayOf()
-        private val modeAdapter = ModeAdapter(context)
-
-        override fun getItemCount() = entries.size
-
-        override fun getItemId(position: Int) = entries[position].hashCode().toLong()
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            return ViewHolder(
-                LayoutInflater.from(parent.context)
-                    .inflate(R.layout.thermal_list_item, parent, false)
-            )
-        }
-
-        override fun onBindViewHolder(holder: ViewHolder, position: Int) =
-            holder.run {
-                val entry = entries[position]
-                val state = thermalUtils.getStateForPackage(entry.packageName)
-                mode.apply {
-                    adapter = modeAdapter
-                    setSelection(state.id, false)
-                    onItemSelectedListener = this@AppsAdapter
-                    tag = entry
-                }
-                title.apply {
-                    text = entry.label
-                    setOnClickListener { mode.performClick() }
-                }
-                icon.setImageDrawable(entry.icon)
-            }
-
-        override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-            val entry = parent?.tag as? AppEntry ?: return
-            if (entry.state.id != position) {
-                thermalUtils.writePackage(entry.packageName, position)
-                notifyItemChanged(position)
-            }
-        }
-
-        override fun onNothingSelected(parent: AdapterView<*>?) {}
-
-        fun notifyDataSetChangedOnUiThread() {
-            activity?.runOnUiThread { super.notifyDataSetChanged() }
-        }
-
-        fun notifyItemInsertedOnUiThread(position: Int) {
-            activity?.runOnUiThread { super.notifyItemInserted(position) }
-        }
-
-        fun notifyItemRemovedOnUiThread(position: Int) {
-            activity?.runOnUiThread { super.notifyItemRemoved(position) }
-        }
-    }
 
     companion object {
         private const val TAG = "ThermalSettingsFragment"
