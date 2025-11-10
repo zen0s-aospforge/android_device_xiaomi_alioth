@@ -18,7 +18,6 @@ package org.lineageos.xiaomiparts.hbm
 import android.content.Context
 import android.graphics.PorterDuff
 import android.util.AttributeSet
-import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
@@ -28,6 +27,7 @@ import android.widget.Toast
 import androidx.core.content.res.TypedArrayUtils
 import androidx.preference.Preference
 import androidx.preference.PreferenceManager
+import org.lineageos.xiaomiparts.utils.Logging
 import androidx.preference.PreferenceViewHolder
 import org.lineageos.xiaomiparts.R
 import kotlin.math.abs
@@ -143,7 +143,7 @@ open class CustomSeekBarPreference @JvmOverloads constructor(
                 )
             }
         } catch (ex: Exception) {
-            Log.e(TAG, "Error binding view: $ex")
+            Logging.e("Seek", "Error binding view: $ex")
         }
 
         mSeekBar.max = getSeekValue(mMaxValue)
