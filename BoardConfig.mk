@@ -172,7 +172,7 @@ BOARD_QTI_DYNAMIC_PARTITIONS_PARTITION_LIST := $(ALL_PARTITIONS)
 BOARD_QTI_DYNAMIC_PARTITIONS_SIZE := 9122611200 # (BOARD_SUPER_PARTITION_SIZE - 4MiB)
 
 # Partitions - reserved size
--include vendor/lineage/config/BoardConfigReservedSize.mk
+-include vendor/euclid/config/BoardConfigReservedSize.mk
 $(foreach p, $(call to-upper, $(TREBLE_PARTITIONS)), \
     $(eval BOARD_$(p)IMAGE_PARTITION_RESERVED_SIZE := 30720000))
 
@@ -232,7 +232,7 @@ VENDOR_SECURITY_PATCH := $(PLATFORM_SECURITY_PATCH)
 
 # Sepolicy
 include device/qcom/sepolicy_vndr/SEPolicy.mk
-include device/lineage/sepolicy/libperfmgr/sepolicy.mk
+include device/euclid/sepolicy/libperfmgr/sepolicy.mk
 SYSTEM_EXT_PRIVATE_SEPOLICY_DIRS += $(DEVICE_PATH)/sepolicy/private
 SYSTEM_EXT_PUBLIC_SEPOLICY_DIRS += $(DEVICE_PATH)/sepolicy/public
 BOARD_VENDOR_SEPOLICY_DIRS += $(DEVICE_PATH)/sepolicy/vendor
