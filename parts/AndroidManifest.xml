@@ -32,10 +32,10 @@
         </receiver>
 
         <activity
-            android:name=".thermal.ThermalSettingsActivity"
+            android:name=".thermal.ThermalComposeActivity"
             android:label="@string/thermal_title"
             android:icon="@drawable/ic_thermal_settings"
-            android:theme="@style/Theme.SubSettingsBase.NoActionBar"
+            android:theme="@android:style/Theme.DeviceDefault.NoActionBar"
             android:exported="true">
             <intent-filter>
                 <action android:name="com.android.settings.action.IA_SETTINGS" />

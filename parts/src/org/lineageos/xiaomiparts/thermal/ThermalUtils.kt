@@ -16,7 +16,7 @@ import android.telecom.DefaultDialerManager.getDefaultDialerApplication
 import androidx.annotation.StringRes
 import androidx.preference.PreferenceManager
 import org.lineageos.xiaomiparts.R
-import org.lineageos.xiaomiparts.utils.dlog
+import org.lineageos.xiaomiparts.utils.Logging
 import org.lineageos.xiaomiparts.utils.writeLine
 import com.android.settingslib.applications.AppUtils.isBrowserApp
 
@@ -50,25 +50,25 @@ private constructor(
 
     fun startService() {
         if (enabled) {
-            dlog(TAG, "startService")
+            Logging.d(TAG, "startService")
             context.startServiceAsUser(serviceIntent, UserHandle.CURRENT)
         }
     }
 
     fun stopService() {
-        dlog(TAG, "stopService")
+        Logging.d(TAG, "stopService")
         context.stopService(serviceIntent)
     }
 
     private fun writeValue(value: String) {
-        dlog(TAG, "writing pref value: $value")
+        Logging.d(TAG, "writing pref value: $value")
         sharedPrefs.edit().putString(THERMAL_CONTROL, value).apply()
     }
 
     private fun readValue(): String = sharedPrefs.getString(THERMAL_CONTROL, null) ?: DEFAULT_VALUE
 
     fun writePackage(packageName: String, mode: Int) {
-        dlog(TAG, "writePackage: $packageName -> $mode")
+        Logging.d(TAG, "writePackage: $packageName -> $mode")
         var newValue = value.replace("$packageName,", "")
         val modes = newValue.split(":").toMutableList()
         modes[mode] += "$packageName,"
@@ -82,22 +82,22 @@ private constructor(
     }
 
     fun resetProfiles() {
-        dlog(TAG, "resetProfiles")
+        Logging.d(TAG, "resetProfiles")
         value = DEFAULT_VALUE
     }
 
     fun setDefaultThermalProfile() {
-        dlog(TAG, "setDefaultThermalProfile")
+        Logging.d(TAG, "setDefaultThermalProfile")
         writeLine(THERMAL_SCONFIG, THERMAL_STATE_OFF)
     }
 
     fun setThermalProfile(packageName: String) {
         if (packageName.isEmpty()) {
-            dlog(TAG, "setThermalProfile: packageName is empty")
+            Logging.d(TAG, "setThermalProfile: packageName is empty")
             return
         }
         val state = getStateForPackage(packageName)
-        dlog(TAG, "setThermalProfile: $packageName -> $state")
+        Logging.d(TAG, "setThermalProfile: $packageName -> $state")
         writeLine(THERMAL_SCONFIG, state.config)
     }
 
