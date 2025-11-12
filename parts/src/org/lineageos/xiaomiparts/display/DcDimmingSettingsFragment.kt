@@ -19,7 +19,7 @@ package org.lineageos.xiaomiparts.display
 import android.os.Bundle
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragment
-import androidx.preference.SwitchPreference
+import androidx.preference.SwitchPreferenceCompat
 import androidx.preference.PreferenceManager
 import org.lineageos.xiaomiparts.R
 import org.lineageos.xiaomiparts.hbm.HBMManager
@@ -31,7 +31,7 @@ import java.io.File
 
 class DcDimmingSettingsFragment : PreferenceFragment(), Preference.OnPreferenceChangeListener {
 
-    private var mDcDimmingPreference: SwitchPreference? = null
+    private var mDcDimmingPreference: SwitchPreferenceCompat? = null
     private var hbmFile: File? = null
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {

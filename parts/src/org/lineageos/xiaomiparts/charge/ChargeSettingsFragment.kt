@@ -20,19 +20,19 @@ import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragment
-import androidx.preference.SwitchPreference
+import androidx.preference.SwitchPreferenceCompat
 import org.lineageos.xiaomiparts.R
 
 class ChargeSettingsFragment : PreferenceFragment(), Preference.OnPreferenceChangeListener {
 
     private lateinit var chargeUtils: ChargeUtils
-    private var bypassChargePreference: SwitchPreference? = null
+    private var bypassChargePreference: SwitchPreferenceCompat? = null
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.charge_settings, rootKey)
 
         chargeUtils = ChargeUtils(activity!!)
-        bypassChargePreference = findPreference<SwitchPreference>(KEY_BYPASS_CHARGE)
+        bypassChargePreference = findPreference<SwitchPreferenceCompat>(KEY_BYPASS_CHARGE)
 
         val bypassChargeSupported = chargeUtils.isBypassChargeSupported()
 
