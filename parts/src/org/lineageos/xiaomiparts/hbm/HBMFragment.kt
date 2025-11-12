@@ -7,7 +7,7 @@ import android.os.UserHandle
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragment
 import androidx.preference.PreferenceManager
-import androidx.preference.TwoStatePreference
+import androidx.preference.SwitchPreferenceCompat
 import org.lineageos.xiaomiparts.R
 import org.lineageos.xiaomiparts.display.DcDimmingSettingsFragment.Companion.DC_DIMMING_ENABLE_KEY
 import org.lineageos.xiaomiparts.display.DcDimmingTileService
@@ -18,8 +18,8 @@ class HBMFragment : PreferenceFragment() {
 
     private val TAG = "HBMFrag"
 
-    private var hbmPreference: TwoStatePreference? = null
-    private var autoHBMPreference: TwoStatePreference? = null
+    private var hbmPreference: SwitchPreferenceCompat? = null
+    private var autoHBMPreference: SwitchPreferenceCompat? = null
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         Logging.i(TAG, "Creating HBM preferences")
@@ -27,7 +27,7 @@ class HBMFragment : PreferenceFragment() {
 
         val prefs = PreferenceManager.getDefaultSharedPreferences(activity)
 
-        hbmPreference = findPreference<TwoStatePreference>(HBMManager.PREF_HBM_KEY)?.apply {
+        hbmPreference = findPreference<SwitchPreferenceCompat>(HBMManager.PREF_HBM_KEY)?.apply {
             onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
                 val enabled = newValue as? Boolean ?: false
                 Logging.i(TAG, "Manual HBM preference changed: $enabled")
@@ -36,7 +36,7 @@ class HBMFragment : PreferenceFragment() {
             }
         }
 
-        autoHBMPreference = findPreference<TwoStatePreference>(HBMManager.PREF_AUTO_HBM_KEY)?.apply {
+        autoHBMPreference = findPreference<SwitchPreferenceCompat>(HBMManager.PREF_AUTO_HBM_KEY)?.apply {
             isChecked = prefs.getBoolean(HBMManager.PREF_AUTO_HBM_KEY, false)
             
             onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
