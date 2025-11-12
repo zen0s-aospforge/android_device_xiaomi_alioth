@@ -8,6 +8,10 @@
 android_app {
     name: "XiaomiParts",
 
+    defaults: [
+        "platform_app_defaults",
+    ],
+
     srcs: ["src/**/*.kt", "src/**/*.java"],
     resource_dirs: ["res"],
     certificate: "platform",
@@ -15,13 +19,31 @@ android_app {
     system_ext_specific: true,
     privileged: true,
 
-    static_libs: [
-        "org.lineageos.settings.resources",
-    ],
-        
     optimize: {
+        enabled: true,
         proguard_flags_files: ["proguard.flags"],
     },
+
+    use_embedded_native_libs: true,
+
+    static_libs: [
+        "org.lineageos.settings.resources",
+        "androidx.activity_activity-compose",
+        "androidx.compose.animation_animation-core",
+        "androidx.compose.foundation_foundation",
+        "androidx.compose.material3_material3",
+        "androidx.compose.material_material-icons-core",
+        "androidx.compose.runtime_runtime",
+        "androidx.compose.ui_ui",
+        "androidx.lifecycle_lifecycle-viewmodel-compose",
+        "kotlinx-coroutines-core",
+    ],
+
+    kotlincflags: [
+        "-Xjvm-default=all",
+        "-opt-in=kotlin.RequiresOptIn",
+        "-P plugin:androidx.compose.compiler.plugins.kotlin:sourceInformation=true",
+    ],
 
     required: [
         "privapp_whitelist_org.lineageos.settings.xml",
