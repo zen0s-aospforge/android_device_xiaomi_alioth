@@ -5,7 +5,7 @@
 
     <uses-permission android:name="android.permission.DEVICE_POWER" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-
+    
     <application
         android:allowBackup="true"
         android:label="@string/app_name"
@@ -13,30 +13,18 @@
         android:directBootAware="true"
         android:defaultToDeviceProtectedStorage="true">
 
-        <receiver
-            android:name=".BootCompletedReceiver"
-            android:exported="true">
+        <receiver android:name=".services.BootCompletedReceiver" android:exported="true">
             <intent-filter android:priority="1000">
                 <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
 
-        <!-- HBM Boot Receiver - dedicated HBM initialization -->
-        <receiver
-            android:name=".hbm.HBMBootReceiver"
-            android:exported="false"
-            android:directBootAware="true">
-            <intent-filter android:priority="999">
-                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
-            </intent-filter>
-        </receiver>
-
         <activity
-            android:name=".thermal.ThermalComposeActivity"
+            android:name=".ui.thermal.ThermalComposeActivity"
             android:label="@string/thermal_title"
             android:icon="@drawable/ic_thermal_settings"
-            android:theme="@android:style/Theme.DeviceDefault.NoActionBar"
-            android:exported="true">
+            android:exported="true"
+            android:theme="@style/Theme.SubSettingsBase">
             <intent-filter>
                 <action android:name="com.android.settings.action.IA_SETTINGS" />
             </intent-filter>
@@ -51,24 +39,10 @@
                 android:resource="@drawable/ic_thermal_settings" />
         </activity>
 
-        <service
-            android:name=".thermal.ThermalService"
-            android:permission="ThermalService" />
-
-        <service
-            android:name=".display.DcDimmingTileService"
-            android:exported="true"
-            android:icon="@drawable/ic_dc_tile"
-            android:label="@string/dc_dimming_enable_title"
-            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
-            <intent-filter>
-                <action android:name="android.service.quicksettings.action.QS_TILE" />
-            </intent-filter>
-        </service>
-
         <activity
-            android:name=".display.DcDimmingSettingsActivity"
-            android:label="@string/dc_dimming_enable_title"
+            android:name=".ui.dim.DcDimmingActivity"
+            android:label="@string/dc_dimming_title"
+            android:icon="@drawable/ic_dcdimming"
             android:exported="true"
             android:theme="@style/Theme.SubSettingsBase">
             <intent-filter>
@@ -79,46 +53,30 @@
                 android:value="com.android.settings.category.ia.display" />
             <meta-data
                 android:name="com.android.settings.summary"
-                android:resource="@string/dc_dimming_enable_summary" />
+                android:resource="@string/dc_dimming_summary" />
         </activity>
 
         <activity
-            android:name=".hbm.HBMActivity"
-            android:label="@string/hbm_fragment_title"
-            android:exported="false"
-            android:theme="@style/Theme.SubSettingsBase">
-            <intent-filter>
-                <action android:name="com.android.settings.action.IA_SETTINGS" />
-            </intent-filter>
-            <meta-data
-                android:name="com.android.settings.category"
-                android:value="com.android.settings.category.ia.display" />
-            <meta-data
-                android:name="com.android.settings.summary"
-                android:resource="@string/hbm_fragment_summary" />
-        </activity>
-
-        <activity
-            android:name=".hbm.HBMFragment" />
-
-        <service
-            android:name=".hbm.AutoHBMService"
-            android:exported="false" />
-
-        <service
-            android:name=".hbm.HBMModeTileService"
+            android:name=".ui.hbm.HBMActivity"
+            android:label="@string/hbm_title"
             android:icon="@drawable/ic_hbm_tile"
-            android:label="@string/hbm_mode_title"
             android:exported="true"
-            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            android:theme="@style/Theme.SubSettingsBase">
             <intent-filter>
-                <action android:name="android.service.quicksettings.action.QS_TILE" />
+                <action android:name="com.android.settings.action.IA_SETTINGS" />
             </intent-filter>
-        </service>
+            <meta-data
+                android:name="com.android.settings.category"
+                android:value="com.android.settings.category.ia.display" />
+            <meta-data
+                android:name="com.android.settings.summary"
+                android:resource="@string/hbm_summary" />
+        </activity>
 
         <activity
-            android:name=".charge.ChargeActivity"
+            android:name=".ui.charge.ChargeActivity"
             android:label="@string/charge_bypass_title"
+            android:icon="@drawable/ic_dc_tile"
             android:exported="true"
             android:theme="@style/Theme.SubSettingsBase">
             <intent-filter>
@@ -133,7 +91,7 @@
         </activity>
 
         <activity
-            android:name=".revanced.ReVancedActivity"
+            android:name=".ui.revanced.ReVancedActivity"
             android:label="@string/revanced_title"
             android:icon="@drawable/youtube_activity_24px"
             android:exported="true"
@@ -151,6 +109,32 @@
                 android:name="com.android.settings.icon"
                 android:resource="@drawable/youtube_activity_24px" />
         </activity>
+
+        <service android:name=".services.ThermalService" android:exported="false" />
+        
+        <service
+            android:name=".services.DcDimmingTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_dc_tile"
+            android:label="@string/dc_dimming_title"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
+        <service android:name=".services.AutoHBMService" android:exported="false" />
+
+        <service
+            android:name=".services.HBMModeTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_hbm_tile"
+            android:label="@string/hbm_mode_title"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
 
     </application>
 </manifest>
