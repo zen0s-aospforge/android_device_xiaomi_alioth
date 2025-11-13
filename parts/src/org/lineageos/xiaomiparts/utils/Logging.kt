@@ -1,8 +1,3 @@
-/*
- * SPDX-FileCopyrightText: 2023-2025 Paranoid Android
- * SPDX-License-Identifier: Apache-2.0
- */
-
 package org.lineageos.xiaomiparts.utils
 
 import android.util.Log
