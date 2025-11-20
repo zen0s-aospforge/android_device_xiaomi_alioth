@@ -73,6 +73,11 @@
     <!-- Whether usage of the proximity sensor during doze is supported -->
     <bool name="doze_proximity_sensor_supported">false</bool>
 
+    <!-- Type of the double tap sensor. Empty if double tap is not supported. -->
+    <bool name="config_dozeDoubleTapSensorAvailable">true</bool>
+    <bool name="config_supports_double_tap_ambient" translatable="false">true</bool>
+    <string name="config_dozeDoubleTapSensorType" translatable="false">org.lineageos.sensor.double_tap</string>
+
     <!-- Whether the device supports Smart Pixels -->
     <bool name="config_supportSmartPixels">true</bool>
 
