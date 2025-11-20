@@ -265,16 +265,16 @@ TARGET_SUPPORTS_OMX_SERVICE := false
 
 # Overlays
 PRODUCT_PACKAGES += \
-    CarrierConfigResCommon \
-    DialerResCommon \
-    FrameworksResCommon \
-    LineageSDKResCommon \
-    LineageSettingsResCommon \
-    SettingsResCommon \
-    SettingsProviderResCommon \
-    SystemUIResCommon \
-    TelephonyResCommon \
-    WifiResCommon
+    ApertureAlioth \
+    CarrierConfigAlioth \
+    DialerAlioth \
+    FrameworksAlioth \
+    LineageSDKAlioth \
+    LineageSettingsAlioth \
+    SettingsProviderResAlioth \
+    SystemUIAlioth \
+    TelephonyAlioth \
+    WifiResAlioth
 
 PRODUCT_ENFORCE_RRO_TARGETS := *
 

@@ -1,0 +1,36 @@
+//
+// SPDX-FileCopyrightText: The LineageOS Project
+// SPDX-License-Identifier: Apache-2.0
+//
+
+// Common Overlay (Vendor)
+runtime_resource_overlay {
+    name: "WifiResCommon",
+    manifest: "common/AndroidManifest.xml",
+    resource_dirs: ["common/res"],
+    vendor: true,
+}
+
+// CN Variant - Redmi K40 (Product)
+runtime_resource_overlay {
+    name: "WifiOverlayM2012K11AC",
+    manifest: "ac/AndroidManifest.xml",
+    resource_dirs: ["ac/res"],
+    product_specific: true,
+}
+
+// Global Variant - POCO F3 (Product)
+runtime_resource_overlay {
+    name: "WifiOverlayM2012K11AG",
+    manifest: "ag/AndroidManifest.xml",
+    resource_dirs: ["ag/res"],
+    product_specific: true,
+}
+
+// India Variant - Mi 11X (Product)
+runtime_resource_overlay {
+    name: "WifiOverlayM2012K11AI",
+    manifest: "ai/AndroidManifest.xml",
+    resource_dirs: ["ai/res"],
+    product_specific: true,
+}
