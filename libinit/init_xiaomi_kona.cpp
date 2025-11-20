@@ -1,0 +1,17 @@
+/*
+ * Copyright (C) 2021-2025 The LineageOS Project
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include "vendor_init.h"
+#include "include/libinit_dalvik_heap.h"
+#include "include/libinit_variant.h"
+
+// This picks up the 'variants' vector from libvariant_xiaomi_alioth.cpp
+extern const std::vector<variant_info> variants;
+
+void vendor_load_properties() {
+    search_variant(variants);
+    set_dalvik_heap();
+}
