@@ -7,19 +7,19 @@ runtime_resource_overlay {
     name: "SettingsProviderOverlayAliothPOCO",
     manifest: "AndroidManifest-POCO.xml",
     resource_dirs: ["res-POCO"],
-    vendor: true,
+    product_specific: true,
 }
 
 runtime_resource_overlay {
     name: "SettingsProviderOverlayAliothRedmi",
     manifest: "AndroidManifest-Redmi.xml",
     resource_dirs: ["res-Redmi"],
-    vendor: true,
+    product_specific: true,
 }
 
 runtime_resource_overlay {
     name: "SettingsProviderOverlayAliothMi11X",
     manifest: "AndroidManifest-Mi11X.xml",
     resource_dirs: ["res-Mi11X"],
-    vendor: true,
+    product_specific: true,
 }

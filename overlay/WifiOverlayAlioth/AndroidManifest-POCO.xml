@@ -7,5 +7,7 @@
     <overlay android:targetPackage="com.android.wifi.resources"
                    android:targetName="WifiCustomization"
                    android:isStatic="true"
-                   android:priority="101"/>
+                   android:priority="101"
+                   android:requiredSystemPropertyName="ro.boot.hwc"
+                   android:requiredSystemPropertyValue="GLOBAL"/>
 </manifest>
